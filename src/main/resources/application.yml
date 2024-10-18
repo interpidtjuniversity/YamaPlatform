@@ -1,0 +1,23 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 200MB
+  application:
+    name: grade_feedback
+  datasource:
+    druid:
+      username: root
+      password: cy19991116
+      jdbcUrl: jdbc:mysql://8.138.173.53:3306/grade_feedback?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      driverClassName: com.mysql.cj.jdbc.Driver
+      initialSize: 5
+      minIdle: 5
+      maxActive: 20
+      maxWait: 60000
+      poolPreparedStatements: true
+  redis:
+    port: 6379
+    host: 8.138.173.53
+
+

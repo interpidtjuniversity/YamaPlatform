@@ -1,0 +1,8 @@
+package com.clcy.grade_feedback.service;
+
+import com.clcy.grade_feedback.model.UserLoginModel;
+
+public interface LoginService {
+
+    Object login(UserLoginModel login);
+}

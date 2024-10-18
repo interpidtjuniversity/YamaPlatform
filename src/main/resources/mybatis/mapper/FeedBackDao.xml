@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clcy.grade_feedback.dao.FeedBackDao">
+
+    <resultMap type="com.clcy.grade_feedback.entity.FeedBack" id="FeedBackMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="studentId" column="studentId" jdbcType="VARCHAR"/>
+        <result property="studentName" column="studentName" jdbcType="VARCHAR"/>
+        <result property="examName" column="examName" jdbcType="VARCHAR"/>
+        <result property="feedbackStatus" column="feedbackStatus" jdbcType="VARCHAR"/>
+        <result property="feedbackContent" column="feedbackContent" jdbcType="VARCHAR"/>
+        <result property="feedbackImages" column="feedbackImages" jdbcType="VARCHAR"/>
+        <result property="deadline" column="deadline" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryByStudentId" resultMap="FeedBackMap">
+        select
+            *
+        from grade_feedback.feedback_table
+        where studentId = #{studentId} AND
+              deadline > UNIX_TIMESTAMP()
+              limit 100
+    </select>
+
+    <update id="updateFeedBack">
+        update grade_feedback.feedback_table
+        <set>
+            feedbackStatus = #{feedBack.feedbackStatus},
+            feedbackContent = #{feedBack.feedbackContent},
+            feedbackImages = #{feedBack.feedbackImages},
+        </set>
+        where
+              id = #{feedBack.id} AND
+              studentId = #{feedBack.studentId} AND
+              examName = #{feedBack.examName}
+        limit 1
+    </update>
+
+</mapper>
