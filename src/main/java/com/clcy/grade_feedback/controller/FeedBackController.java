@@ -25,8 +25,8 @@ public class FeedBackController {
     private FeedBackService feedBackService;
 
     @ResponseBody
-    @RequestMapping("/needFeedBackList")
-    public List<FeedBackModel> needFeedBackList(HttpServletRequest request, HttpServletResponse response) {
+    @RequestMapping("/feedBackList")
+    public List<FeedBackModel> feedBackList(HttpServletRequest request, HttpServletResponse response) {
         return feedBackService.queryFeedBackListByStudentId(UserHolder.getValue().getStudentId());
     }
 

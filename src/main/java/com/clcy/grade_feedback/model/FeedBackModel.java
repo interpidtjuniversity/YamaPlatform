@@ -37,5 +37,5 @@ public class FeedBackModel {
 
     @Getter
     @Setter
-    private String status;
+    private String feedbackStatus;
 }

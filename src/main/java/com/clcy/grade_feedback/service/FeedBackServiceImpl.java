@@ -26,7 +26,7 @@ public class FeedBackServiceImpl implements FeedBackService{
                 .studentName(feedBack.getStudentName())
                 .examName(feedBack.getExamName())
                 .id(feedBack.getId())
-                .status(feedBack.getFeedbackStatus())
+                .feedbackStatus(feedBack.getFeedbackStatus())
                 .feedbackText(feedBack.getFeedbackContent())
                 .images(JSONObject.parseArray(feedBack.getFeedbackImages(), String.class))
                 .build()

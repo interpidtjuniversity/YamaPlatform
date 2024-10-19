@@ -19,7 +19,7 @@
             *
         from grade_feedback.feedback_table
         where studentId = #{studentId} AND
-              deadline > UNIX_TIMESTAMP()
+              deadline > NOW()
               limit 100
     </select>
 
