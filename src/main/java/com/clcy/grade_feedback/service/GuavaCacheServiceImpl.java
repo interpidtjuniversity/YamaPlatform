@@ -27,4 +27,9 @@ public class GuavaCacheServiceImpl implements GuavaCacheService{
         CACHE.put(TOKEN_PREFIX + key, value);
         return value;
     }
+
+    @Override
+    public void deleteToken(String key) {
+        CACHE.invalidate(TOKEN_PREFIX + key);
+    }
 }

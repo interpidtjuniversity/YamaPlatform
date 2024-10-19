@@ -19,4 +19,14 @@
         limit 1
     </select>
 
+    <update id="updatePassword">
+        update grade_feedback.student_info
+        <set>
+            password = #{userLogin.password},
+        </set>
+        where
+            studentId = #{userLogin.studentId}
+            limit 1
+    </update>
+
 </mapper>

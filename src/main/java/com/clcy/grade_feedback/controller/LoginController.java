@@ -1,5 +1,7 @@
 package com.clcy.grade_feedback.controller;
 
+import com.clcy.grade_feedback.annotation.Limit;
+import com.clcy.grade_feedback.enumerate.LimitType;
 import com.clcy.grade_feedback.model.UserLoginModel;
 import com.clcy.grade_feedback.service.GuavaCacheService;
 import com.clcy.grade_feedback.service.LoginService;
@@ -22,7 +24,20 @@ public class LoginController {
     @ResponseBody
     @RequestMapping("/login")
     public Object login(HttpServletRequest request, HttpServletResponse response, @RequestBody UserLoginModel userLogin) {
+        if (null == userLogin || null == userLogin.getStudentId() || null == userLogin.getPassword()) {
+            return UserLoginModel.PLEASE_CHECK();
+        }
         return loginService.login(userLogin);
+    }
+
+    @ResponseBody
+    @RequestMapping("/updatePassword")
+    @Limit(period = 10, count = 5, limitType = LimitType.IP_METHOD, prefix = "LoginController.updatePassword")
+    public Object updatePassword(HttpServletRequest request, HttpServletResponse response, @RequestBody UserLoginModel userLogin) {
+        if (null == userLogin || null == userLogin.getStudentId() || null == userLogin.getPassword()) {
+            return UserLoginModel.PLEASE_CHECK();
+        }
+        return loginService.updatePassword(userLogin);
     }
 
     @ResponseBody

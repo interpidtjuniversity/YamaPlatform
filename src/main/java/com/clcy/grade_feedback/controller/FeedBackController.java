@@ -1,6 +1,9 @@
 package com.clcy.grade_feedback.controller;
 
+import com.clcy.grade_feedback.annotation.Limit;
+import com.clcy.grade_feedback.enumerate.LimitType;
 import com.clcy.grade_feedback.model.FeedBackModel;
+import com.clcy.grade_feedback.model.ResultModel;
 import com.clcy.grade_feedback.service.ALiYunOssService;
 import com.clcy.grade_feedback.service.FeedBackService;
 import com.clcy.grade_feedback.utils.UserHolder;
@@ -26,31 +29,36 @@ public class FeedBackController {
 
     @ResponseBody
     @RequestMapping("/feedBackList")
-    public List<FeedBackModel> feedBackList(HttpServletRequest request, HttpServletResponse response) {
-        return feedBackService.queryFeedBackListByStudentId(UserHolder.getValue().getStudentId());
+    @Limit(period = 10, count = 5, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.feedBackList")
+    public ResultModel<List<FeedBackModel>> feedBackList(HttpServletRequest request, HttpServletResponse response) {
+        return ResultModel.CommonResult(
+                feedBackService.queryFeedBackListByStudentId(UserHolder.getValue().getStudentId()));
     }
 
     @ResponseBody
     @RequestMapping("/feedback")
-    public boolean feedback(HttpServletRequest request, HttpServletResponse response, @RequestBody FeedBackModel feedBackModel) {
-        return feedBackService.feedBack(feedBackModel);
+    @Limit(period = 10, count = 5, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.feedback")
+    public ResultModel<Boolean> feedback(HttpServletRequest request, HttpServletResponse response, @RequestBody FeedBackModel feedBackModel) {
+        return ResultModel.CommonResult(feedBackService.feedBack(feedBackModel));
     }
 
     @ResponseBody
     @RequestMapping("/cancelFeedBack")
-    public boolean cancelFeedBack(HttpServletRequest request, HttpServletResponse response, @RequestBody FeedBackModel feedBackModel) {
-        return feedBackService.cancelFeedBack(feedBackModel);
+    @Limit(period = 10, count = 5, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.cancelFeedBack")
+    public ResultModel<Boolean> cancelFeedBack(HttpServletRequest request, HttpServletResponse response, @RequestBody FeedBackModel feedBackModel) {
+        return ResultModel.CommonResult(feedBackService.cancelFeedBack(feedBackModel));
     }
 
     @ResponseBody
     @RequestMapping("/upload")
-    public Object upload(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
+    @Limit(period = 10, count = 10, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.upload")
+    public ResultModel<Object> upload(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
         try {
             byte[] data = file.getBytes();
             String fileId = UserHolder.getValue().getStudentId() + System.currentTimeMillis() + file.getOriginalFilename();
-            return aLiYunOssService.upload(fileId, new ByteArrayInputStream(data));
+            return ResultModel.CommonResult(aLiYunOssService.upload(fileId, new ByteArrayInputStream(data)));
         } catch (IOException e) {
-            return null;
+            return ResultModel.FAILURE();
         }
     }
 }
