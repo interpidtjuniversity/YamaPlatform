@@ -42,4 +42,8 @@ public class FeedBack {
     @Getter
     @Setter
     private Timestamp deadline;
+
+    @Getter
+    @Setter
+    private String tag;
 }

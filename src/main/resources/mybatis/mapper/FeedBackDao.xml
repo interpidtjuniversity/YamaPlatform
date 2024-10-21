@@ -11,6 +11,7 @@
         <result property="feedbackContent" column="feedbackContent" jdbcType="VARCHAR"/>
         <result property="feedbackImages" column="feedbackImages" jdbcType="VARCHAR"/>
         <result property="deadline" column="deadline" jdbcType="TIMESTAMP"/>
+        <result property="tag" column="tag" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询单个-->
