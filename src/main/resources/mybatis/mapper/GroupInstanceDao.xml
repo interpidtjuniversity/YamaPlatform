@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clcy.grade_feedback.dao.GroupInstanceDao">
+
+    <resultMap type="com.clcy.grade_feedback.entity.GroupInstance" id="GroupInstanceMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="className" column="class_name" jdbcType="VARCHAR"/>
+        <result property="groupId" column="group_id" jdbcType="INTEGER"/>
+        <result property="groupName" column="group_name" jdbcType="VARCHAR"/>
+        <result property="examName" column="exam_name" jdbcType="VARCHAR"/>
+        <result property="studentsId" column="students_id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--创建新班级-->
+    <insert id="createGroupInstance">
+        INSERT INTO
+            grade_feedback.group_instance (class_id, class_name, group_id, group_name, exam_name, students_id)
+        VALUES
+            (#{instance.classId}, #{instance.className}, #{instance.groupId}, #{instance.groupName}, #{instance.examName}, #{instance.studentsId})
+    </insert>
+
+    <select id="queryInstanceByGroupId" resultMap="GroupInstanceMap">
+        select
+            *
+        from grade_feedback.group_instance
+        where group_id = #{groupId}
+            limit 5000
+    </select>
+
+    <update id="updateGroupInstanceExam">
+        update grade_feedback.group_instance
+        <set>
+            exam_name = #{newExamName},
+        </set>
+        where
+        group_id = #{groupId} AND
+        exam_name = #{oldExamName}
+        limit 1
+    </update>
+
+</mapper>

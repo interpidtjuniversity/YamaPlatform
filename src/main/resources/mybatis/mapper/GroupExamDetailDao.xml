@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clcy.grade_feedback.dao.GroupExamDetailDao">
+
+    <resultMap type="com.clcy.grade_feedback.entity.GroupExamDetail" id="GroupExamDetailMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="className" column="class_name" jdbcType="VARCHAR"/>
+        <result property="groupId" column="group_id" jdbcType="INTEGER"/>
+        <result property="groupName" column="group_name" jdbcType="VARCHAR"/>
+        <result property="examName" column="exam_name" jdbcType="VARCHAR"/>
+        <result property="puzzleIdx" column="puzzle_idx" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="choices" column="choices" jdbcType="VARCHAR"/>
+        <result property="images" column="images" jdbcType="VARCHAR"/>
+        <result property="answer" column="answer" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryGroupExamDetailByIdAndName" resultMap="GroupExamDetailMap">
+        select
+            puzzleIdx, content, choices, images, answer
+        from grade_feedback.group_exam_detail
+        where group_id = #{groupId} and
+              exam_name = #{examName}
+        limit 100
+    </select>
+
+    <select id="batchQueryGroupExamDetailById" resultMap="GroupExamDetailMap">
+        select
+            exam_name, puzzleIdx, content, choices, images, answer
+        from grade_feedback.group_exam_detail
+        where group_id = #{groupId}
+            limit 5000
+    </select>
+
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clcy.grade_feedback.dao.StudentClassInfoDao">
+
+    <resultMap type="com.clcy.grade_feedback.entity.StudentClassInfo" id="StudentClassInfoMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="className" column="class_name" jdbcType="VARCHAR"/>
+        <result property="studentId" column="student_id" jdbcType="VARCHAR"/>
+        <result property="studentName" column="student_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <insert id="batchInsertClassStudents">
+        INSERT INTO
+        grade_feedback.student_class_info(class_id, class_name, student_id, student_name)
+        VALUES
+        <foreach collection="infos" item="info" separator=",">
+            (#{info.classId}, #{info.className}, #{info.studentId}, #{info.studentName})
+        </foreach>
+    </insert>
+
+    <select id="queryClassStudents" resultMap="StudentClassInfoMap">
+        select
+            *
+        from grade_feedback.student_class_info
+        where class_id = #{classId}
+            limit 1000
+    </select>
+
+    <select id="queryStudentClasses" resultMap="StudentClassInfoMap">
+        select
+            *
+        from grade_feedback.student_class_info
+        where student_id = #{studentId}
+            limit 1000
+    </select>
+
+</mapper>

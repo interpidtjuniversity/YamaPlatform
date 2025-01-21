@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -27,7 +28,6 @@ public class druid {
 
     @Bean
     public DataSource dataSource() throws SQLException {
-        System.out.println(druidDataSourceProperties);
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setUsername(druidDataSourceProperties.getUsername());
         druidDataSource.setPassword(druidDataSourceProperties.getPassword());
@@ -58,10 +58,13 @@ public class druid {
         return sqlSessionTemplate;
     }
 
+    @Bean
+    public PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
 
     @Bean
-    public PlatformTransactionManager platformTransactionManager() throws SQLException {
-        PlatformTransactionManager platformTransactionManager = new DataSourceTransactionManager(dataSource());
-        return platformTransactionManager;
+    public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+        return new TransactionTemplate(transactionManager);
     }
 }

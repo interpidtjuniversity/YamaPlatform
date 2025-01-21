@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clcy.grade_feedback.dao.ClassInfoDao">
+
+    <resultMap type="com.clcy.grade_feedback.entity.ClassInfo" id="ClassInfoMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="className" column="className" jdbcType="VARCHAR"/>
+        <result property="ownerNumber" column="ownerNumber" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--创建新班级-->
+    <insert id="createGroupsForClass">
+        INSERT INTO
+            grade_feedback.class_info (class_name, owner_number)
+        VALUES
+            (#{className}, #{ownerNumber})
+    </insert>
+
+    <select id="queryClassForOwner" resultMap="ClassInfoMap">
+        select
+            *
+        from grade_feedback.class_info
+        where owner_number = #{ownerNumber}
+        limit 100
+    </select>
+
+</mapper>

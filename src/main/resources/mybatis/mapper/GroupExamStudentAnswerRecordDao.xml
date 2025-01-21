@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clcy.grade_feedback.dao.GroupExamStudentAnswerRecordDao">
+
+    <resultMap type="com.clcy.grade_feedback.entity.GroupExamStudentAnswerRecord" id="GroupExamStudentAnswerRecordMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="className" column="class_name" jdbcType="VARCHAR"/>
+        <result property="groupId" column="group_id" jdbcType="INTEGER"/>
+        <result property="groupName" column="group_name" jdbcType="VARCHAR"/>
+        <result property="examName" column="exam_name" jdbcType="VARCHAR"/>
+        <result property="studentId" column="student_id" jdbcType="VARCHAR"/>
+        <result property="studentName" column="student_name" jdbcType="VARCHAR"/>
+        <result property="answers" column="answers" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryStudentAnswerRecords" resultMap="GroupExamStudentAnswerRecordMap">
+        select
+            *
+        from grade_feedback.group_exam_student_answer_record
+        where
+              class_id = #{classId} AND
+              student_id = #{studentId}
+        limit 5000
+    </select>
+
+    <!--查询单个-->
+    <select id="queryStudentAnswerRecord" resultMap="GroupExamStudentAnswerRecordMap">
+        select
+            *
+        from grade_feedback.group_exam_student_answer_record
+        where
+              group_id = #{groupId} AND
+              exam_name = #{examName} AND
+              student_id = #{studentId}
+            limit 1
+    </select>
+
+    <insert id="addStudentAnswerRecord">
+        INSERT INTO
+            grade_feedback.group_exam_student_answer_record (class_id, class_name, group_id, group_name, exam_name, student_id, student_name, answers)
+        VALUES
+            (#{record.classId}, #{record.className}, #{record.groupId}, #{record.groupName}, #{record.examName}, #{record.studentId}, #{record.studentName}, #{record.answers})
+    </insert>
+
+</mapper>

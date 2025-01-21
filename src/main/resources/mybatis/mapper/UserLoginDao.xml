@@ -13,14 +13,14 @@
     <select id="queryUser" resultMap="UserLoginMap">
         select
             *
-        from grade_feedback.student_info
+        from grade_feedback.user_account
         where studentId = #{userLogin.studentId} and
               password = #{userLogin.password}
         limit 1
     </select>
 
     <update id="updatePassword">
-        update grade_feedback.student_info
+        update grade_feedback.user_account
         <set>
             password = #{userLogin.password},
         </set>
