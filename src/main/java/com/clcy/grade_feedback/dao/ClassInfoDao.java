@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ClassInfoDao {
 
-    int createClass(@Param("className") String className, @Param("ownerNumber") String ownerNumber);
+    int createClass(@Param("classInfo") ClassInfo classInfo);
 
     List<ClassInfo> queryClassForOwner(@Param("ownerNumber") String ownerNumber);
 }

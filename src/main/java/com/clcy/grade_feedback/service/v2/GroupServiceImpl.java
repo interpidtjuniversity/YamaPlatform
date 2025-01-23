@@ -42,7 +42,7 @@ public class GroupServiceImpl implements GroupService{
     public List<GroupClassInfoModel> queryClassGroups(int classId) {
         List<GroupClassInfo> infos = groupClassInfoDao.queryGroupsInClass(classId);
         return infos.stream().map(info -> GroupClassInfoModel
-                .builder().id(info.getId())
+                .builder().groupId(info.getId())
                 .classId(info.getClassId())
                 .className(info.getClassName())
                 .groupName(info.getGroupName())

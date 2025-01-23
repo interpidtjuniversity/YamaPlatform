@@ -9,11 +9,11 @@
     </resultMap>
 
     <!--创建新班级-->
-    <insert id="createGroupsForClass">
+    <insert id="createClass" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO
             grade_feedback.class_info (class_name, owner_number)
         VALUES
-            (#{className}, #{ownerNumber})
+            (#{classInfo.className}, #{classInfo.ownerNumber})
     </insert>
 
     <select id="queryClassForOwner" resultMap="ClassInfoMap">

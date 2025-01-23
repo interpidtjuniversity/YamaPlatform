@@ -5,9 +5,11 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Data
 @Builder
-public class ClassInfoModel {
+public class OwnerClassModel {
 
     @Getter
     @Setter
@@ -20,4 +22,12 @@ public class ClassInfoModel {
     @Getter
     @Setter
     private String ownerNumber;
+
+    @Getter
+    @Setter
+    private List<GroupClassInfoModel> groupClassInfoModel;
+
+    @Getter
+    @Setter
+    private StudentClassInfoModel studentClassInfoModel;
 }

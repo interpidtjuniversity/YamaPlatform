@@ -26,7 +26,9 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public int createClass(ClassInfoModel classModel) {
-        return classInfoDao.createClass(classModel.getClassName(), classModel.getOwnerNumber());
+        ClassInfo classInfo = ClassInfo.builder().className(classModel.getClassName()).ownerNumber(classModel.getOwnerNumber()).build();
+        classInfoDao.createClass(classInfo);
+        return classInfo.getId();
     }
 
     @Override
@@ -47,7 +49,7 @@ public class ClassServiceImpl implements ClassService {
     public List<ClassInfoModel> queryClassForOwner(String ownerNumber) {
         List<ClassInfo> infos = classInfoDao.queryClassForOwner(ownerNumber);
         return infos.stream().map(info -> ClassInfoModel.builder()
-                .id(info.getId())
+                .classId(info.getId())
                 .className(info.getClassName())
                 .ownerNumber(info.getOwnerNumber())
                 .build()).collect(Collectors.toList());
@@ -69,7 +71,7 @@ public class ClassServiceImpl implements ClassService {
         infos.forEach(info -> {
             studentsMap.put(info.getStudentId(), info.getStudentName());
         });
-        return StudentClassInfoModel.builder().students(studentsMap).build();
+        return StudentClassInfoModel.builder().classId(classId).students(studentsMap).build();
     }
 
 }

@@ -11,7 +11,7 @@ public class GroupClassInfoModel {
 
     @Getter
     @Setter
-    private int id;
+    private int groupId;
 
     @Getter
     @Setter
