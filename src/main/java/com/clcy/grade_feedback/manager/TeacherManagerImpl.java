@@ -47,6 +47,8 @@ public class TeacherManagerImpl implements TeacherManager{
                     // 3.创建班级的分组
                     createModel.getGroupClassInfoModel().forEach(groupClassInfoModel -> groupClassInfoModel.setClassId(classId));
                     groupService.createGroupsForClass(createModel.getGroupClassInfoModel());
+                    // 4.回调分组策略
+                    // TODO
                     return true;
                 } catch (Exception e) {
                     status.setRollbackOnly();

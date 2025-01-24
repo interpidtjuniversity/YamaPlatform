@@ -1,8 +1,10 @@
 package com.clcy.grade_feedback.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.clcy.grade_feedback.manager.StudentManager;
 import com.clcy.grade_feedback.model.ResultModel;
 import com.clcy.grade_feedback.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -10,11 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/exam/api")
-public class PublishExamController {
+public class ExamController {
 
     private static final JSONArray puzzles = JSONArray.parseArray(
             "[{\"puzzle_id\":\"1\",\"content\":\"1.麦克斯韦速率分布函数\\\\(f(\\\\nu)\\\\)的物理意义是（A）\",\"images\":[],\"choices\":[\"它是气体分子处于\\\\(\\\\nu\\\\)附近单位速率区间的概率\",\"它是气体分子处于\\\\(\\\\nu\\\\)附近的频率\",\"它是气体分子处于\\\\(\\\\nu \\\\sim \\\\nu + d\\\\nu\\\\)速率区间的分子数\",\"它是气体分子处于\\\\(\\\\nu \\\\sim \\\\nu + d\\\\nu\\\\)速率区间的相对分子数\"],\"answer\":\"A\",\"hard\":\"1\"},{\"puzzle_id\":\"2\",\"content\":\"2.麦克斯韦速率分布函数\\\\(f(\\\\nu)\\\\)的物理意义是（A）\",\"images\":[],\"choices\":[\"它是气体分子处于\\\\(\\\\nu\\\\)附近单位速率区间的概率\",\"它是气体分子处于\\\\(\\\\nu\\\\)附近的频率\",\"它是气体分子处于\\\\(\\\\nu \\\\sim \\\\nu + d\\\\nu\\\\)速率区间的分子数\",\"它是气体分子处于\\\\(\\\\nu \\\\sim \\\\nu + d\\\\nu\\\\)速率区间的相对分子数\"],\"answer\":\"A\",\"hard\":\"1\"},{\"puzzle_id\":\"3\",\"content\":\"3.麦克斯韦速率分布函数\\\\(f(\\\\nu)\\\\)的物理意义是（A）\",\"images\":[],\"choices\":[\"它是气体分子处于\\\\(\\\\nu\\\\)附近单位速率区间的概率\",\"它是气体分子处于\\\\(\\\\nu\\\\)附近的频率\",\"它是气体分子处于\\\\(\\\\nu \\\\sim \\\\nu + d\\\\nu\\\\)速率区间的分子数\",\"它是气体分子处于\\\\(\\\\nu \\\\sim \\\\nu + d\\\\nu\\\\)速率区间的相对分子数\"],\"answer\":\"A\",\"hard\":\"1\"}]");
 
+    @Autowired
+    private StudentManager studentManager;
 
     /**
     * 查询某个学生的考试列表
