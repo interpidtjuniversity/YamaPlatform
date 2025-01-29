@@ -6,6 +6,7 @@ import com.clcy.grade_feedback.entity.ClassInfo;
 import com.clcy.grade_feedback.entity.StudentClassInfo;
 import com.clcy.grade_feedback.model.v2.ClassInfoModel;
 import com.clcy.grade_feedback.model.v2.StudentClassInfoModel;
+import com.clcy.grade_feedback.model.v2.StudentClassMetaModel;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -56,11 +57,13 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public List<StudentClassInfoModel> queryStudentClasses(String studentId) {
+    public List<StudentClassMetaModel> queryStudentClasses(String studentId) {
         List<StudentClassInfo> infos = studentClassInfoDao.queryStudentClasses(studentId);
-        return infos.stream().map(info -> StudentClassInfoModel.builder()
+        return infos.stream().map(info -> StudentClassMetaModel.builder()
                 .classId(info.getClassId())
                 .className(info.getClassName())
+                .studentId(info.getStudentId())
+                .studentName(info.getStudentName())
                 .build()).collect(Collectors.toList());
     }
 

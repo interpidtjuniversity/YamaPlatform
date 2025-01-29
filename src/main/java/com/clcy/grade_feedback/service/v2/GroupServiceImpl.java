@@ -49,7 +49,7 @@ public class GroupServiceImpl implements GroupService{
                 .groupingStrategy(info.getGroupingStrategy())
                 .groupingInfo(info.getGroupingInfo())
                 .build()
-        ).collect(Collectors.toList());
+        ).sorted(Comparator.comparingInt(GroupClassInfoModel::getGroupId)).collect(Collectors.toList());
     }
 
     @Override

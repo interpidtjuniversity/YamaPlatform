@@ -1,12 +1,12 @@
 package com.clcy.grade_feedback.entity;
 
-import lombok.Builder;
+//import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 @Data
-@Builder
+//@Builder
 public class GroupExamDetail {
 
     @Getter
@@ -35,7 +35,7 @@ public class GroupExamDetail {
 
     @Getter
     @Setter
-    private String puzzleIdx;
+    private int puzzleIdx;
 
     @Getter
     @Setter

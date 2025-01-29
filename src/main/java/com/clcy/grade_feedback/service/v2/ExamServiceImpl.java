@@ -50,7 +50,7 @@ public class ExamServiceImpl implements ExamService{
     public List<GroupExamDetailModel> queryGroupExamDetail(int groupId, String examName) {
         List<GroupExamDetail> details = groupExamDetailDao.queryGroupExamDetailByIdAndName(groupId, examName);
         return details.stream()
-                .sorted(Comparator.comparingInt(detail -> Integer.parseInt(detail.getPuzzleIdx())))
+                .sorted(Comparator.comparingInt(GroupExamDetail::getPuzzleIdx))
                 .map(detail -> GroupExamDetailModel
                         .builder()
                         .puzzleIdx(detail.getPuzzleIdx())
@@ -78,10 +78,14 @@ public class ExamServiceImpl implements ExamService{
     @Override
     public GroupExamStudentAnswerRecordModel queryStudentAnswerRecord(int groupId, String examName, String studentId) {
         GroupExamStudentAnswerRecord record = groupExamStudentAnswerRecordDao.queryStudentAnswerRecord(groupId, examName, studentId);
-        return GroupExamStudentAnswerRecordModel
-                .builder()
-                .answers(JSONObject.parseObject(record.getAnswers(), new TypeReference<Map<String, String>>() {}))
-                .build();
+        if (record != null) {
+            return GroupExamStudentAnswerRecordModel
+                    .builder()
+                    .answers(JSONObject.parseObject(record.getAnswers(), new TypeReference<Map<String, String>>() {
+                    }))
+                    .build();
+        }
+        return null;
     }
 
     @Override

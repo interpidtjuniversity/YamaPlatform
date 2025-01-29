@@ -2,6 +2,7 @@ package com.clcy.grade_feedback.manager;
 
 import com.clcy.grade_feedback.model.v2.*;
 import com.clcy.grade_feedback.service.GuavaCacheService;
+import com.clcy.grade_feedback.service.v2.ClassService;
 import com.clcy.grade_feedback.service.v2.ExamService;
 import com.clcy.grade_feedback.service.v2.GroupService;
 import com.google.common.collect.Lists;
@@ -25,7 +26,20 @@ public class StudentManagerImpl implements StudentManager{
     private ExamService examService;
 
     @Autowired
+    private ClassService classService;
+
+    @Autowired
     private GuavaCacheService guavaCacheService;
+
+    @Override
+    public List<StudentClassMetaModel> queryClassList(String studentId) {
+        List<StudentClassMetaModel> classes =  classService.queryStudentClasses(studentId);
+        classes.forEach(cls -> {
+            cls.setStudents(classService.queryClassStudents(cls.getClassId()).getStudents());
+        });
+
+        return classes;
+    }
 
     @Override
     public List<StudentExamMetaModel> queryExamList(int classId, String studentId) {
@@ -40,28 +54,25 @@ public class StudentManagerImpl implements StudentManager{
             List<GroupInstanceModel> instances = guavaCacheService.getGroupInstances(group.getGroupId());
             instances.forEach(instance -> {
                 if (instance.getStudentsId().contains(studentId)) {
-                    GroupExamMetaModel examMetaModel = exams
+                    exams
                             .stream()
                             .filter(exam -> Objects.equals(exam.getExamName(), instance.getExamName()))
                             .findAny()
-                            .get();
-
-                    hitMap.put(
-                            instance.getExamName(),
-                            StudentExamMetaModel.builder()
-                                    .id(examMetaModel.getId())
-                                    .groupId(group.getGroupId())
-                                    .groupName(group.getGroupName())
-                                    .examName(examMetaModel.getExamName())
-                                    .startTime(examMetaModel.getStartTime())
-                                    .endTime(examMetaModel.getEndTime())
-                                    // 初始考卷都默认未作答
-                                    .status("未作答")
-                                    .build()
-                    );
+                            .ifPresent(examMetaModel -> hitMap.put(
+                                    instance.getExamName(),
+                                    StudentExamMetaModel.builder()
+                                            .id(examMetaModel.getId())
+                                            .groupId(group.getGroupId())
+                                            .groupName(group.getGroupName())
+                                            .examName(examMetaModel.getExamName())
+                                            .startTime(examMetaModel.getStartTime())
+                                            .endTime(examMetaModel.getEndTime())
+                                            // 初始考卷都默认未作答
+                                            .status("未作答")
+                                            .build()
+                            ));
                 }
             });
-
         });
         // 3.查询该学生的答题记录表, 主动点击交卷的或者在考试页面倒计时结束等待交卷的
         List<GroupExamStudentAnswerRecordModel> records = examService.queryStudentAnswerRecords(classId, studentId);
@@ -76,6 +87,8 @@ public class StudentManagerImpl implements StudentManager{
         hitMap.forEach((examName, metaModel) -> result.add(metaModel));
         return result.stream().sorted(Comparator.comparingInt(StudentExamMetaModel::getId)).collect(Collectors.toList());
     }
+
+
 
     @Override
     public List<GroupExamDetailModel> queryExamDetail(int groupId, String examName, boolean containsAnswer) {
@@ -93,4 +106,20 @@ public class StudentManagerImpl implements StudentManager{
         return examService.queryStudentAnswerRecord(groupId, examName, studentId);
     }
 
+    @Override
+    public boolean submitExam(GroupExamStudentAnswerRecordModel model) {
+        return examService.addStudentAnswerRecord(
+                GroupExamStudentAnswerRecordModel.builder()
+                        .classId(model.getClassId())
+                        .className(model.getClassName())
+                        .groupId(model.getGroupId())
+                        .groupName(model.getGroupName())
+                        .studentId(model.getStudentId())
+                        .studentName(model.getStudentName())
+                        .examName(model.getExamName())
+                        .answers(model.getAnswers())
+                        .build()
+        ) == 1;
+
+    }
 }

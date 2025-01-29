@@ -9,7 +9,7 @@
         <result property="groupId" column="group_id" jdbcType="INTEGER"/>
         <result property="groupName" column="group_name" jdbcType="VARCHAR"/>
         <result property="examName" column="exam_name" jdbcType="VARCHAR"/>
-        <result property="puzzleIdx" column="puzzle_idx" jdbcType="VARCHAR"/>
+        <result property="puzzleIdx" column="puzzle_idx" jdbcType="INTEGER"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
         <result property="choices" column="choices" jdbcType="VARCHAR"/>
         <result property="images" column="images" jdbcType="VARCHAR"/>
@@ -19,7 +19,7 @@
     <!--查询单个-->
     <select id="queryGroupExamDetailByIdAndName" resultMap="GroupExamDetailMap">
         select
-            puzzleIdx, content, choices, images, answer
+            puzzle_idx, content, choices, images, answer
         from grade_feedback.group_exam_detail
         where group_id = #{groupId} and
               exam_name = #{examName}
@@ -28,7 +28,7 @@
 
     <select id="batchQueryGroupExamDetailById" resultMap="GroupExamDetailMap">
         select
-            exam_name, puzzleIdx, content, choices, images, answer
+            exam_name, puzzle_idx, content, choices, images, answer
         from grade_feedback.group_exam_detail
         where group_id = #{groupId}
             limit 5000

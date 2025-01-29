@@ -34,4 +34,9 @@ public class ResultModel<T> {
         resultModel.setSuccess(Boolean.TRUE);
         return resultModel;
     }
+
+    public ResultModel<T> message(String message) {
+        this.setMessage(message);
+        return this;
+    }
 }

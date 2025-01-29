@@ -37,7 +37,7 @@ public class GroupExamDetailModel {
 
     @Getter
     @Setter
-    private String puzzleIdx;
+    private int puzzleIdx;
 
     @Getter
     @Setter
