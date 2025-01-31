@@ -1,6 +1,5 @@
 package com.clcy.grade_feedback.controller;
 
-import com.alibaba.fastjson.JSONArray;
 import com.clcy.grade_feedback.manager.StudentManager;
 import com.clcy.grade_feedback.model.ResultModel;
 import com.clcy.grade_feedback.model.v2.*;
@@ -18,7 +17,6 @@ public class StudentController {
 
     @Autowired
     private StudentManager studentManager;
-
 
     /**
      * 查询某个学生的班级列表
@@ -60,28 +58,17 @@ public class StudentController {
     public ResultModel<Boolean> submitExam(HttpServletRequest request, HttpServletResponse response, @RequestBody GroupExamStudentAnswerRecordModel submitModel) {
         String studentId = UserHolder.getValue().getStudentId();
         submitModel.setStudentId(studentId);
-        // 在这里先查询这个考试是否已经提交过了
-        GroupExamStudentAnswerRecordModel model = studentManager.queryAnswerRecord(submitModel.getGroupId(), submitModel.getExamName(), studentId);
-        if (null != model) {
-            return ResultModel.CommonResult(false).message("该考试已经提交过了, 请误重复提交");
-        }
         return ResultModel.CommonResult(studentManager.submitExam(submitModel));
     }
 
     /**
-     * 查询考试记录接口, 返回某个学生某次考试的作答记录
+     * 查询考试记录接口, 返回某个学生某次考试的作答记录或者是未作答
      * */
     @ResponseBody
     @RequestMapping("/examRecords")
-    public ResultModel<JSONArray> examRecords(HttpServletRequest request, HttpServletResponse response, @RequestParam("examId") String examId) {
-//        String studentId = UserHolder.getValue().getStudentId();
-//        // 根据studentId, examId 去查询测试表
-//        // studentId, examId, puzzles_id, answers_id
-//        // List<JSONObject> puzzles_id = queryPuzzles(studentId, examId);
-//        // 根据puzzles_id 去查询题库
-//        // puzzle_id, content, images, options, choice, hard
-//        return ResultModel.CommonResult(queryPuzzles(studentId, examId));
-        return null;
+    public ResultModel<List<StudentExamRecordModel>> examRecords(HttpServletRequest request, HttpServletResponse response, @RequestParam("examName") String examName, @RequestParam("groupId") int groupId) {
+        String studentId = UserHolder.getValue().getStudentId();
+        return ResultModel.CommonResult(studentManager.examRecords(groupId, examName, studentId));
     }
 
 }

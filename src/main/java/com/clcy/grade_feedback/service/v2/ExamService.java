@@ -10,6 +10,8 @@ public interface ExamService {
 
     List<GroupExamMetaModel> queryGroupExamsMeta(int groupId);
 
+    GroupExamMetaModel queryGroupExamMeta(int groupId, String examName);
+
     List<GroupExamDetailModel> queryGroupExamDetail(int groupId, String examName);
 
     List<GroupExamStudentAnswerRecordModel> queryStudentAnswerRecords(int classId, String studentId);

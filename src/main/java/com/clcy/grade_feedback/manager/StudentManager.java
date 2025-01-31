@@ -17,5 +17,9 @@ public interface StudentManager {
     // 查询学生的某次作答记录
     GroupExamStudentAnswerRecordModel queryAnswerRecord(int groupId, String examName, String studentId);
 
+    // 学生提交考试记录
     boolean submitExam(GroupExamStudentAnswerRecordModel model);
+
+    // 查询学生考试作答信息
+    List<StudentExamRecordModel> examRecords(int groupId, String examName, String studentId);
 }

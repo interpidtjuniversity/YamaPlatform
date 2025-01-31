@@ -10,10 +10,7 @@ import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -108,6 +105,17 @@ public class StudentManagerImpl implements StudentManager{
 
     @Override
     public boolean submitExam(GroupExamStudentAnswerRecordModel model) {
+        GroupExamMetaModel exam = examService.queryGroupExamMeta(model.getGroupId(), model.getExamName());
+        // 如果考试已经结束
+        if (null == exam || exam.getEndTime().before(new Date())) {
+            return false;
+        }
+        // 如果以及提交过
+        GroupExamStudentAnswerRecordModel record = queryAnswerRecord(model.getGroupId(), model.getExamName(), model.getStudentId());
+        if (null != record) {
+            return false;
+        }
+
         return examService.addStudentAnswerRecord(
                 GroupExamStudentAnswerRecordModel.builder()
                         .classId(model.getClassId())
@@ -121,5 +129,36 @@ public class StudentManagerImpl implements StudentManager{
                         .build()
         ) == 1;
 
+    }
+
+    @Override
+    public List<StudentExamRecordModel> examRecords(int groupId, String examName, String studentId) {
+        // 题目
+        List<GroupExamDetailModel> detailModels = queryExamDetail(groupId, examName, true);
+        // 作答
+        GroupExamStudentAnswerRecordModel answerModel = queryAnswerRecord(groupId, examName, studentId);
+
+        return detailModels.stream().map(detail -> {
+            StudentExamRecordModel recordModel = StudentExamRecordModel
+                    .builder()
+                    .groupId(detail.getGroupId())
+                    .groupName(detail.getGroupName())
+                    .examName(detail.getExamName())
+                    .content(detail.getContent())
+                    .choices(detail.getChoices())
+                    .images(detail.getImages())
+                    .puzzleIdx(detail.getPuzzleIdx())
+                    .answer(detail.getAnswer())
+                    .build();
+            if (null != answerModel && answerModel.getAnswers().containsKey(String.valueOf(detail.getPuzzleIdx()))) {
+                recordModel.setYourChoice(
+                        answerModel.getAnswers().get(String.valueOf(detail.getPuzzleIdx()))
+                );
+                recordModel.setStatus("已作答");
+            } else {
+                recordModel.setStatus("未作答");
+            }
+            return recordModel;
+        }).collect(Collectors.toList());
     }
 }

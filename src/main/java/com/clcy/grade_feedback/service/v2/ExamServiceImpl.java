@@ -47,6 +47,19 @@ public class ExamServiceImpl implements ExamService{
     }
 
     @Override
+    public GroupExamMetaModel queryGroupExamMeta(int groupId, String examName) {
+        GroupExamMeta meta = groupExamMetaDao.queryGroupExamMeta(groupId, examName);
+        if (null != meta) {
+            return GroupExamMetaModel.builder()
+                    .id(meta.getId())
+                    .startTime(meta.getStartTime())
+                    .endTime(meta.getEndTime())
+                    .build();
+        }
+        return null;
+    }
+
+    @Override
     public List<GroupExamDetailModel> queryGroupExamDetail(int groupId, String examName) {
         List<GroupExamDetail> details = groupExamDetailDao.queryGroupExamDetailByIdAndName(groupId, examName);
         return details.stream()
