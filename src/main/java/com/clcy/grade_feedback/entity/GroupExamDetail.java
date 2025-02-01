@@ -52,4 +52,8 @@ public class GroupExamDetail {
     @Getter
     @Setter
     private String answer;
+
+    @Getter
+    @Setter
+    private String analysis;
 }

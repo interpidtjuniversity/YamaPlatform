@@ -43,11 +43,18 @@ public class UserLoginModel {
     private String code;
 
     @Getter
-    @Setter
     private String token;
 
     public UserLoginModel setToken(String token) {
         this.token = token;
+        return this;
+    }
+
+    @Getter
+    private String url;
+
+    public UserLoginModel setUrl(String url) {
+        this.url = url;
         return this;
     }
 }

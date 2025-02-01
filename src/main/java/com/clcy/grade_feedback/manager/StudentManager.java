@@ -12,7 +12,7 @@ public interface StudentManager {
     List<StudentExamMetaModel> queryExamList(int classId, String studentId);
 
     // 查询某次考试的考题
-    List<GroupExamDetailModel> queryExamDetail(int groupId, String examName, boolean containsAnswer);
+    List<GroupExamDetailModel> queryExamDetail(int groupId, String examName, boolean containsAnswer, boolean containsAnalysis);
 
     // 查询学生的某次作答记录
     GroupExamStudentAnswerRecordModel queryAnswerRecord(int groupId, String examName, String studentId);

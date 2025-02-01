@@ -60,8 +60,8 @@ public class ExamServiceImpl implements ExamService{
     }
 
     @Override
-    public List<GroupExamDetailModel> queryGroupExamDetail(int groupId, String examName) {
-        List<GroupExamDetail> details = groupExamDetailDao.queryGroupExamDetailByIdAndName(groupId, examName);
+    public List<GroupExamDetailModel> queryGroupExamDetail(int groupId, String examName, boolean containsAnswer, boolean containsAnalysis) {
+        List<GroupExamDetail> details = groupExamDetailDao.queryGroupExamDetailByIdAndName(groupId, examName, containsAnswer, containsAnalysis);
         return details.stream()
                 .sorted(Comparator.comparingInt(GroupExamDetail::getPuzzleIdx))
                 .map(detail -> GroupExamDetailModel
@@ -71,6 +71,7 @@ public class ExamServiceImpl implements ExamService{
                         .images(JSONArray.parseArray(detail.getImages(), String.class))
                         .choices(JSONArray.parseArray(detail.getChoices(), String.class))
                         .answer(detail.getAnswer())
+                        .analysis(detail.getAnalysis())
                         .build()
                 ).collect(Collectors.toList());
     }

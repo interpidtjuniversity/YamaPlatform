@@ -47,7 +47,7 @@ public class StudentController {
     @RequestMapping("/examPuzzles")
     public ResultModel<List<GroupExamDetailModel>> examPuzzles(HttpServletRequest request, HttpServletResponse response, @RequestParam("examName") String examName, @RequestParam("groupId") int groupId) {
         String studentId = UserHolder.getValue().getStudentId();
-        return ResultModel.CommonResult(studentManager.queryExamDetail(groupId, examName, false));
+        return ResultModel.CommonResult(studentManager.queryExamDetail(groupId, examName, false, false));
     }
 
     /**

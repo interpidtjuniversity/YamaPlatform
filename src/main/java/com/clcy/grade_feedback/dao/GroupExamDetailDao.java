@@ -10,7 +10,7 @@ public interface GroupExamDetailDao {
     /**
      * 查询某个分组某次考试的所有题目以及答案
      * */
-    List<GroupExamDetail> queryGroupExamDetailByIdAndName(@Param("groupId") int groupId, @Param("examName") String examName);
+    List<GroupExamDetail> queryGroupExamDetailByIdAndName(@Param("groupId") int groupId, @Param("examName") String examName, @Param("containsAnswer") boolean containsAnswer, @Param("containsAnalysis") boolean containsAnalysis);
 
     /**
      * 查询某个分组的所有题目以及答案

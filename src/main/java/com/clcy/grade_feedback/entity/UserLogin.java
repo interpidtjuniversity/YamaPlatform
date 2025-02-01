@@ -24,4 +24,8 @@ public class UserLogin {
     @Getter
     @Setter
     private String studentName;
+
+    @Getter
+    @Setter
+    private String role;
 }

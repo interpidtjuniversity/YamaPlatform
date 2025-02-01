@@ -99,14 +99,8 @@ public class StudentManagerImpl implements StudentManager{
 
 
     @Override
-    public List<GroupExamDetailModel> queryExamDetail(int groupId, String examName, boolean containsAnswer) {
-        List<GroupExamDetailModel> examDetail = examService.queryGroupExamDetail(groupId, examName);
-        if (!containsAnswer) {
-            examDetail.forEach(puzzle -> {
-                puzzle.setAnswer(null);
-            });
-        }
-        return examDetail;
+    public List<GroupExamDetailModel> queryExamDetail(int groupId, String examName, boolean containsAnswer, boolean containsAnalysis) {
+        return examService.queryGroupExamDetail(groupId, examName, containsAnswer, containsAnalysis);
     }
 
     @Override
@@ -145,7 +139,7 @@ public class StudentManagerImpl implements StudentManager{
     @Override
     public List<StudentExamRecordModel> examRecords(int groupId, String examName, String studentId) {
         // 题目
-        List<GroupExamDetailModel> detailModels = queryExamDetail(groupId, examName, true);
+        List<GroupExamDetailModel> detailModels = queryExamDetail(groupId, examName, true, true);
         // 作答
         GroupExamStudentAnswerRecordModel answerModel = queryAnswerRecord(groupId, examName, studentId);
 
@@ -160,6 +154,7 @@ public class StudentManagerImpl implements StudentManager{
                     .images(detail.getImages())
                     .puzzleIdx(detail.getPuzzleIdx())
                     .answer(detail.getAnswer())
+                    .analysis(detail.getAnalysis())
                     .build();
             if (null != answerModel && answerModel.getAnswers().containsKey(String.valueOf(detail.getPuzzleIdx()))) {
                 recordModel.setYourChoice(

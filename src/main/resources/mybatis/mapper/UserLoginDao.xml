@@ -7,6 +7,7 @@
         <result property="studentId" column="studentId" jdbcType="VARCHAR"/>
         <result property="studentName" column="studentName" jdbcType="VARCHAR"/>
         <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="role" column="role" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询单个-->

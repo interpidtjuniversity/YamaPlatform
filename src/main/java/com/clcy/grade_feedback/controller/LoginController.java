@@ -48,6 +48,13 @@ public class LoginController {
     }
 
     @ResponseBody
+    @RequestMapping("/isTeacher")
+    public boolean isTeacher(HttpServletRequest request, HttpServletResponse response) {
+        String token = request.getHeader("Authorization");
+        return loginService.isTeacher(token);
+    }
+
+    @ResponseBody
     @RequestMapping("/test")
     public String test(HttpServletRequest request, HttpServletResponse response) {
         return "test";

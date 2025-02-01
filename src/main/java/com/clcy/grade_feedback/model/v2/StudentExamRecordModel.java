@@ -55,4 +55,8 @@ public class StudentExamRecordModel {
     @Getter
     @Setter
     private String status;
+
+    @Getter
+    @Setter
+    private String analysis;
 }

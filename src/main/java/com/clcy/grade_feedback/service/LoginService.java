@@ -7,4 +7,6 @@ public interface LoginService {
     Object login(UserLoginModel login);
 
     boolean updatePassword(UserLoginModel login);
+
+    boolean isTeacher(String token);
 }

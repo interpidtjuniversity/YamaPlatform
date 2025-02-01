@@ -89,7 +89,7 @@ public class GuavaCacheServiceImpl implements GuavaCacheService{
     @Override
     public List<GroupExamDetailModel> getGroupExamDetails(int groupId, String examName) {
         try {
-            return GROUP_EXAM_DETAILS_CACHE.get(String.format("groupId:%d--examName:%s", groupId, examName), () -> examService.queryGroupExamDetail(groupId, examName));
+            return GROUP_EXAM_DETAILS_CACHE.get(String.format("groupId:%d--examName:%s", groupId, examName), () -> examService.queryGroupExamDetail(groupId, examName, true, false));
         } catch (Exception e) {
             // 打日志
             return Lists.newArrayList();

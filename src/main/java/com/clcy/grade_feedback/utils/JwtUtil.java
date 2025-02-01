@@ -42,7 +42,7 @@ public class JwtUtil {
         }
     }
 
-    private static UserLoginModel getTokenInfo(String token) {
+    public static UserLoginModel getTokenInfo(String token) {
         try {
             DecodedJWT jwt = JWT.decode(token);
             UserLoginModel userLogin= UserLoginModel.builder()
