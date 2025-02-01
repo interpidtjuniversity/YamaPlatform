@@ -78,6 +78,17 @@ public class StudentManagerImpl implements StudentManager{
             StudentExamMetaModel model;
             if (null != (model = hitMap.get(record.getExamName()))) {
                 model.setStatus("已作答");
+
+                // 5.计算得分
+                List<GroupExamDetailModel> detailModels = guavaCacheService.getGroupExamDetails(model.getGroupId(), model.getExamName());
+                Map<Integer, String> ansMap = detailModels.stream().collect(Collectors.toMap(GroupExamDetailModel::getPuzzleIdx, GroupExamDetailModel::getAnswer));
+                int[] score = {0};
+                record.getAnswers().forEach((key, value) -> {
+                    if (value.equals(ansMap.get(Integer.valueOf(key)))) {
+                        score[0]++;
+                    }
+                });
+                model.setScore(String.valueOf(score[0]));
             }
         });
         List<StudentExamMetaModel> result = Lists.newArrayList();

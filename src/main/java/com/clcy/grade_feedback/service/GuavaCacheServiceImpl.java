@@ -1,5 +1,6 @@
 package com.clcy.grade_feedback.service;
 
+import com.clcy.grade_feedback.model.v2.GroupExamDetailModel;
 import com.clcy.grade_feedback.model.v2.GroupExamMetaModel;
 import com.clcy.grade_feedback.model.v2.GroupInstanceModel;
 import com.clcy.grade_feedback.service.v2.ExamService;
@@ -40,6 +41,12 @@ public class GuavaCacheServiceImpl implements GuavaCacheService{
             .expireAfterWrite(600, TimeUnit.SECONDS)
             .build();
 
+    private static final Cache<String, List<GroupExamDetailModel>> GROUP_EXAM_DETAILS_CACHE = CacheBuilder.newBuilder()
+            .concurrencyLevel(Runtime.getRuntime().availableProcessors())
+            .maximumSize(500)
+            .expireAfterWrite(600, TimeUnit.SECONDS)
+            .build();
+
     private static final String TOKEN_PREFIX = "TOKEN_";
 
     @Override
@@ -73,6 +80,16 @@ public class GuavaCacheServiceImpl implements GuavaCacheService{
     public List<GroupExamMetaModel> getGroupExams(int groupId) {
         try {
             return GROUP_EXAMS_CACHE.get(groupId, () -> examService.queryGroupExamsMeta(groupId));
+        } catch (Exception e) {
+            // 打日志
+            return Lists.newArrayList();
+        }
+    }
+
+    @Override
+    public List<GroupExamDetailModel> getGroupExamDetails(int groupId, String examName) {
+        try {
+            return GROUP_EXAM_DETAILS_CACHE.get(String.format("groupId:%d--examName:%s", groupId, examName), () -> examService.queryGroupExamDetail(groupId, examName));
         } catch (Exception e) {
             // 打日志
             return Lists.newArrayList();

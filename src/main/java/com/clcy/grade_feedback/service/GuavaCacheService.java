@@ -1,5 +1,6 @@
 package com.clcy.grade_feedback.service;
 
+import com.clcy.grade_feedback.model.v2.GroupExamDetailModel;
 import com.clcy.grade_feedback.model.v2.GroupExamMetaModel;
 import com.clcy.grade_feedback.model.v2.GroupInstanceModel;
 
@@ -16,4 +17,6 @@ public interface GuavaCacheService {
     List<GroupInstanceModel> getGroupInstances(int groupId);
 
     List<GroupExamMetaModel> getGroupExams(int groupId);
+
+    List<GroupExamDetailModel> getGroupExamDetails(int groupId, String examName);
 }
