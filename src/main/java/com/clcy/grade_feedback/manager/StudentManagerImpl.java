@@ -115,7 +115,7 @@ public class StudentManagerImpl implements StudentManager{
         if (null == exam || exam.getEndTime().before(new Date())) {
             return false;
         }
-        // 如果以及提交过
+        // 如果已经提交过
         GroupExamStudentAnswerRecordModel record = queryAnswerRecord(model.getGroupId(), model.getExamName(), model.getStudentId());
         if (null != record) {
             return false;
@@ -131,6 +131,7 @@ public class StudentManagerImpl implements StudentManager{
                         .studentName(model.getStudentName())
                         .examName(model.getExamName())
                         .answers(model.getAnswers())
+                        .clickNextTimeList(model.getClickNextTimeList())
                         .build()
         ) == 1;
 

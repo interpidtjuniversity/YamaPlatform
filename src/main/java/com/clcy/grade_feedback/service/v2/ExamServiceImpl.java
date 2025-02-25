@@ -114,6 +114,7 @@ public class ExamServiceImpl implements ExamService{
                 .studentId(model.getStudentId())
                 .studentName(model.getStudentName())
                 .answers(JSONObject.toJSONString(model.getAnswers()))
+                .clickNextTimeList(JSONObject.toJSONString(model.getClickNextTimeList()))
                 .build();
 
         return groupExamStudentAnswerRecordDao.addStudentAnswerRecord(record);

@@ -38,9 +38,9 @@
 
     <insert id="addStudentAnswerRecord">
         INSERT INTO
-            grade_feedback.group_exam_student_answer_record (class_id, class_name, group_id, group_name, exam_name, student_id, student_name, answers)
+            grade_feedback.group_exam_student_answer_record (class_id, class_name, group_id, group_name, exam_name, student_id, student_name, answers, click_next_time_list)
         VALUES
-            (#{record.classId}, #{record.className}, #{record.groupId}, #{record.groupName}, #{record.examName}, #{record.studentId}, #{record.studentName}, #{record.answers})
+            (#{record.classId}, #{record.className}, #{record.groupId}, #{record.groupName}, #{record.examName}, #{record.studentId}, #{record.studentName}, #{record.answers}, #{record.clickNextTimeList})
     </insert>
 
 </mapper>

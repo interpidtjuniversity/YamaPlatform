@@ -44,4 +44,8 @@ public class GroupExamStudentAnswerRecord {
     @Getter
     @Setter
     private String answers;
+
+    @Getter
+    @Setter
+    private String clickNextTimeList;
 }

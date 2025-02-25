@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -46,4 +47,8 @@ public class GroupExamStudentAnswerRecordModel {
     @Getter
     @Setter
     private Map<String, String> answers;
+
+    @Getter
+    @Setter
+    private List<Long> clickNextTimeList;
 }
