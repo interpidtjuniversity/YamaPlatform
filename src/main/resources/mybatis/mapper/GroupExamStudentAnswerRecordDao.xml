@@ -12,6 +12,7 @@
         <result property="studentId" column="student_id" jdbcType="VARCHAR"/>
         <result property="studentName" column="student_name" jdbcType="VARCHAR"/>
         <result property="answers" column="answers" jdbcType="VARCHAR"/>
+        <result property="clickNextTimeList" column="click_next_time_list" jdbcType="VARCHAR"/>
     </resultMap>
 
     <select id="queryStudentAnswerRecords" resultMap="GroupExamStudentAnswerRecordMap">

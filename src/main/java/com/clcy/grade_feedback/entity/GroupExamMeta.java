@@ -42,4 +42,8 @@ public class GroupExamMeta {
     @Getter
     @Setter
     private Timestamp endTime;
+
+    @Getter
+    @Setter
+    private int duration;
 }

@@ -42,4 +42,8 @@ public class StudentExamMetaModel {
     @Getter
     @Setter
     private String score;
+
+    @Getter
+    @Setter
+    private int duration;
 }

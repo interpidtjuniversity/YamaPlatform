@@ -42,6 +42,7 @@ public class ExamServiceImpl implements ExamService{
                         .startTime(meta.getStartTime())
                         .endTime(meta.getEndTime())
                         .examName(meta.getExamName())
+                        .duration(meta.getDuration())
                         .build()
         ).sorted(Comparator.comparingInt(GroupExamMetaModel::getId)).collect(Collectors.toList());
     }

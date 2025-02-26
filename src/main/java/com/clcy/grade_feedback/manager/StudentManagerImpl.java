@@ -64,6 +64,7 @@ public class StudentManagerImpl implements StudentManager{
                                             .examName(examMetaModel.getExamName())
                                             .startTime(examMetaModel.getStartTime())
                                             .endTime(examMetaModel.getEndTime())
+                                            .duration(examMetaModel.getDuration())
                                             // 初始考卷都默认未作答
                                             .status("未作答")
                                             .build()

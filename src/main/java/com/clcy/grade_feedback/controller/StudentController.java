@@ -71,4 +71,13 @@ public class StudentController {
         return ResultModel.CommonResult(studentManager.examRecords(groupId, examName, studentId));
     }
 
+    /**
+     * 考试心跳检测
+     * */
+    @ResponseBody
+    @RequestMapping("/keepalive")
+    public ResultModel<Boolean> keepalive(HttpServletRequest request, HttpServletResponse response) {
+        return ResultModel.CommonResult(Boolean.TRUE);
+    }
+
 }
