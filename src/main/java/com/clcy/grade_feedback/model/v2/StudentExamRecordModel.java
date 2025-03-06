@@ -59,4 +59,8 @@ public class StudentExamRecordModel {
     @Getter
     @Setter
     private String analysis;
+
+    @Getter
+    @Setter
+    private String knowledgePoints;
 }

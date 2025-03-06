@@ -73,6 +73,7 @@ public class ExamServiceImpl implements ExamService{
                         .choices(JSONArray.parseArray(detail.getChoices(), String.class))
                         .answer(detail.getAnswer())
                         .analysis(detail.getAnalysis())
+                        .knowledgePoints(detail.getKnowledgePoints())
                         .build()
                 ).collect(Collectors.toList());
     }

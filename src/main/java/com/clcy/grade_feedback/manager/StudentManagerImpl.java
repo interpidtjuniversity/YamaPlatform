@@ -157,6 +157,7 @@ public class StudentManagerImpl implements StudentManager{
                     .puzzleIdx(detail.getPuzzleIdx())
                     .answer(detail.getAnswer())
                     .analysis(detail.getAnalysis())
+                    .knowledgePoints(detail.getKnowledgePoints())
                     .build();
             if (null != answerModel && answerModel.getAnswers().containsKey(String.valueOf(detail.getPuzzleIdx()))) {
                 recordModel.setYourChoice(

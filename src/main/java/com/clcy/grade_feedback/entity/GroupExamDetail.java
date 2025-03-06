@@ -56,4 +56,8 @@ public class GroupExamDetail {
     @Getter
     @Setter
     private String analysis;
+
+    @Getter
+    @Setter
+    private String knowledgePoints;
 }

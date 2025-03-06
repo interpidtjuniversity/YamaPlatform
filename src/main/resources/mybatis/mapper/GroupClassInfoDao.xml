@@ -9,15 +9,16 @@
         <result property="className" column="class_name" jdbcType="VARCHAR"/>
         <result property="groupingStrategy" column="grouping_strategy" jdbcType="VARCHAR"/>
         <result property="groupingInfo" column="grouping_info" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--创建新分组-->
     <insert id="createGroupsForClass">
         INSERT INTO
-            grade_feedback.group_class_info(group_name, class_id, class_name, grouping_strategy, grouping_info)
+            grade_feedback.group_class_info(group_name, class_id, class_name, grouping_strategy, grouping_info, type)
         VALUES
         <foreach collection="groups" item="group" separator=",">
-            (#{group.groupName}, #{group.classId}, #{group.className}, #{group.groupingStrategy}, #{group.groupingInfo})
+            (#{group.groupName}, #{group.classId}, #{group.className}, #{group.groupingStrategy}, #{group.groupingInfo}, #{group.type})
         </foreach>
     </insert>
 

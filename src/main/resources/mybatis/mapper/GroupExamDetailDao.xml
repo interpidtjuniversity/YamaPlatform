@@ -15,6 +15,7 @@
         <result property="images" column="images" jdbcType="VARCHAR"/>
         <result property="answer" column="answer" jdbcType="VARCHAR"/>
         <result property="analysis" column="analysis" jdbcType="VARCHAR"/>
+        <result property="knowledgePoints" column="knowledge_points" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询单个-->
@@ -26,6 +27,7 @@
              </if>
              <if test="containsAnalysis">
              , analysis
+             , knowledge_points
              </if>
         from grade_feedback.group_exam_detail
         where group_id = #{groupId} and

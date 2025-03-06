@@ -33,6 +33,7 @@ public class GroupServiceImpl implements GroupService{
                     .groupName(model.getGroupName())
                     .groupingStrategy(model.getGroupingStrategy())
                     .groupingInfo(model.getGroupingInfo())
+                    .type(model.getType())
                     .build()
         ).collect(Collectors.toList());
         return groupClassInfoDao.createGroupsForClass(infos);
@@ -48,6 +49,7 @@ public class GroupServiceImpl implements GroupService{
                 .groupName(info.getGroupName())
                 .groupingStrategy(info.getGroupingStrategy())
                 .groupingInfo(info.getGroupingInfo())
+                .type(info.getType())
                 .build()
         ).sorted(Comparator.comparingInt(GroupClassInfoModel::getGroupId)).collect(Collectors.toList());
     }

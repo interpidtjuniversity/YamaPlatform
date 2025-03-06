@@ -32,4 +32,8 @@ public class GroupClassInfoModel {
     @Getter
     @Setter
     private String groupingInfo;
+
+    @Getter
+    @Setter
+    private String type;
 }
