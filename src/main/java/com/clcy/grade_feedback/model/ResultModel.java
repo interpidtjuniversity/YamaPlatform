@@ -39,4 +39,9 @@ public class ResultModel<T> {
         this.setMessage(message);
         return this;
     }
+
+    public ResultModel<T> success(Boolean success) {
+        this.setSuccess(success);
+        return this;
+    }
 }

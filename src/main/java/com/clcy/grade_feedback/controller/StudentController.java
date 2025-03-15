@@ -4,11 +4,13 @@ import com.clcy.grade_feedback.manager.StudentManager;
 import com.clcy.grade_feedback.model.ResultModel;
 import com.clcy.grade_feedback.model.v2.*;
 import com.clcy.grade_feedback.utils.UserHolder;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -47,6 +49,20 @@ public class StudentController {
     @RequestMapping("/examPuzzles")
     public ResultModel<List<GroupExamDetailModel>> examPuzzles(HttpServletRequest request, HttpServletResponse response, @RequestParam("examName") String examName, @RequestParam("groupId") int groupId) {
         String studentId = UserHolder.getValue().getStudentId();
+        GroupExamMetaModel examMeta = studentManager.queryExamMeta(groupId, examName);
+        List<GroupExamDetailModel> details = Lists.newArrayList();
+
+        if (null == examMeta) {
+            return ResultModel.CommonResult(details).success(Boolean.FALSE).message("考试不存在");
+        } else {
+            if (examMeta.getStartTime().after(new Date())) {
+                return ResultModel.CommonResult(details).success(Boolean.FALSE).message("考试未开始");
+            }
+            if (examMeta.getEndTime().before(new Date())) {
+                return ResultModel.CommonResult(details).success(Boolean.FALSE).message("考试已结束");
+            }
+        }
+
         return ResultModel.CommonResult(studentManager.queryExamDetail(groupId, examName, false, false));
     }
 

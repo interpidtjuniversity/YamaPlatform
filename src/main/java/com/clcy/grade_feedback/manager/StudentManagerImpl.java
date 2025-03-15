@@ -105,6 +105,11 @@ public class StudentManagerImpl implements StudentManager{
     }
 
     @Override
+    public GroupExamMetaModel queryExamMeta(int groupId, String examName) {
+        return examService.queryGroupExamMeta(groupId, examName);
+    }
+
+    @Override
     public GroupExamStudentAnswerRecordModel queryAnswerRecord(int groupId, String examName, String studentId) {
         return examService.queryStudentAnswerRecord(groupId, examName, studentId);
     }
