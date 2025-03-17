@@ -9,4 +9,6 @@ public interface LoginService {
     boolean updatePassword(UserLoginModel login);
 
     boolean isTeacher(String token);
+
+    String studentName(String studentId);
 }

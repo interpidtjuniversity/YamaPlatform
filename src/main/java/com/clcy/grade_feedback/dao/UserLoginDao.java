@@ -8,4 +8,6 @@ public interface UserLoginDao {
     UserLogin queryUser(@Param("userLogin") UserLogin userLogin);
 
     boolean updatePassword(@Param("userLogin") UserLogin userLogin);
+
+    UserLogin queryStudentName(@Param("studentId") String studentId);
 }

@@ -53,8 +53,12 @@ public class ExamServiceImpl implements ExamService{
         if (null != meta) {
             return GroupExamMetaModel.builder()
                     .id(meta.getId())
+                    .classId(meta.getClassId())
+                    .groupId(meta.getGroupId())
+                    .examName(meta.getExamName())
                     .startTime(meta.getStartTime())
                     .endTime(meta.getEndTime())
+                    .duration(meta.getDuration())
                     .build();
         }
         return null;

@@ -10,4 +10,6 @@ public interface GroupClassInfoDao {
     int createGroupsForClass(@Param("groups") List<GroupClassInfo> groups);
 
     List<GroupClassInfo> queryGroupsInClass(@Param("classId") int classId);
+
+    GroupClassInfo queryGroupClass(@Param("groupId") int groupId);
 }

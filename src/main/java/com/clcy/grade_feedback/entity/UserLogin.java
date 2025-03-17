@@ -1,12 +1,11 @@
 package com.clcy.grade_feedback.entity;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserLogin {
 
     @Getter

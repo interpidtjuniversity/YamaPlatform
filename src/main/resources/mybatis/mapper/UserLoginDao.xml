@@ -30,4 +30,12 @@
             limit 1
     </update>
 
+    <select id="queryStudentName" resultMap="UserLoginMap">
+        select
+            studentId, studentName
+        from grade_feedback.user_account
+        where studentId = #{studentId}
+            limit 1
+    </select>
+
 </mapper>

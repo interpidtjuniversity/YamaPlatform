@@ -1,12 +1,18 @@
 package com.clcy.grade_feedback.manager;
 
 import com.clcy.grade_feedback.model.v2.*;
+import com.clcy.grade_feedback.model.v3.GroupExamModel;
+import com.clcy.grade_feedback.model.v3.SyncExamModel;
+import com.clcy.grade_feedback.model.v3.SyncPuzzleModel;
 import com.clcy.grade_feedback.service.GuavaCacheService;
 import com.clcy.grade_feedback.service.v2.ClassService;
 import com.clcy.grade_feedback.service.v2.ExamService;
 import com.clcy.grade_feedback.service.v2.GroupService;
+import com.clcy.grade_feedback.service.v3.ExamStateService;
+import com.clcy.grade_feedback.service.v3.RedisLockService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +33,12 @@ public class StudentManagerImpl implements StudentManager{
 
     @Autowired
     private GuavaCacheService guavaCacheService;
+
+    @Autowired
+    private ExamStateService examStateService;
+
+    @Autowired
+    private RedisLockService redisLockService;
 
     @Override
     public List<StudentClassMetaModel> queryClassList(String studentId) {
@@ -104,6 +116,91 @@ public class StudentManagerImpl implements StudentManager{
         return examService.queryGroupExamDetail(groupId, examName, containsAnswer, containsAnalysis);
     }
 
+    /**
+     * 开始考试, 创建考试状态
+     *
+     * */
+    @Override
+    public SyncExamModel startExam(String studentId, GroupExamMetaModel metaModel) {
+        // 获取锁, 获取锁成功后再进行下一步
+        RLock lock = redisLockService.acquireLock(studentId, metaModel.getGroupId(), metaModel.getExamName());
+        try {
+            //0. 查询是否有已经提交的考试记录
+            GroupExamStudentAnswerRecordModel record = examService.queryStudentAnswerRecord(metaModel.getGroupId(), metaModel.getExamName(), studentId);
+            if (null != record) {
+                // 考试已经提交, 无正在进行的考试状态
+                return null;
+            }
+            //1. 查询是否有已经开始但是还未结束的考试状态记录
+            SyncExamModel examState = examStateService.queryExamState(studentId, metaModel.getGroupId(), metaModel.getExamName());
+            if (null == examState) {
+                examState = examStateService.storeExamState(metaModel,
+                        SyncExamModel.builder()
+                                .studentId(studentId)
+                                .groupId(metaModel.getGroupId())
+                                .examName(metaModel.getExamName())
+                                .build()
+                );
+            }
+
+            //2. 计算剩余时间
+            long now = new Date().getTime();
+            examState.setRemainMillSeconds(examState.getEndTime().getTime() - now);
+
+            return examState;
+        } finally {
+            // 释放锁
+            redisLockService.releaseLock(lock);
+        }
+    }
+
+    /**
+     * 恢复考试记录
+     * */
+    @Override
+    public GroupExamModel fetchExam(String studentId, GroupExamMetaModel metaModel, boolean queryDetails) {
+        // 如果返回为null, 则提前停止(没有正在进行中的考试状态)
+        SyncExamModel examState = startExam(studentId, metaModel);
+        if (null == examState) {
+            return GroupExamModel.builder()
+                    .examState(null)
+                    .build();
+        }
+        // 倒计时已经结束, 这时不返回考试
+        if (examState.getRemainMillSeconds() <= 0) {
+            return GroupExamModel.builder()
+                    .examState(null)
+                    .build();
+        }
+
+        List<GroupExamDetailModel> details = null;
+        if (queryDetails) {
+            details = queryExamDetail(metaModel.getGroupId(), metaModel.getExamName(), false, false);
+        }
+        List<SyncPuzzleModel> puzzleStates = examStateService.queryPuzzleRecords(studentId, metaModel.getGroupId(), metaModel.getExamName());
+        Map<String, String> answers = Maps.newHashMap();
+        List<Long> clickNextTimeList = Lists.newArrayList();
+
+        // 默认停留在第-1题, 也就是考试注意事项的页面
+        final int[] currentPuzzleIdx = {-1};
+        puzzleStates.forEach(ps -> {
+            answers.put(ps.getPuzzleIdx(), ps.getAnswer());
+            clickNextTimeList.add(ps.getClickNextTime());
+            int idx = Integer.parseInt(ps.getPuzzleIdx());
+            if (idx > currentPuzzleIdx[0]) {
+                currentPuzzleIdx[0] = idx;
+            }
+        });
+
+        return GroupExamModel.builder()
+                .details(details)
+                .examState(examState)
+                .answers(answers)
+                .clickNextTimeList(clickNextTimeList)
+                .currentPuzzleIdx(currentPuzzleIdx[0])
+                .build();
+    }
+
     @Override
     public GroupExamMetaModel queryExamMeta(int groupId, String examName) {
         return examService.queryGroupExamMeta(groupId, examName);
@@ -121,58 +218,114 @@ public class StudentManagerImpl implements StudentManager{
         if (null == exam || exam.getEndTime().before(new Date())) {
             return false;
         }
+
+        // 上锁
+        RLock lock = redisLockService.acquireLock(model.getStudentId(), model.getGroupId(), model.getExamName());
         // 如果已经提交过
         GroupExamStudentAnswerRecordModel record = queryAnswerRecord(model.getGroupId(), model.getExamName(), model.getStudentId());
         if (null != record) {
             return false;
         }
+        try {
+            Boolean success = examService.addStudentAnswerRecord(
+                    GroupExamStudentAnswerRecordModel.builder()
+                            .classId(model.getClassId())
+                            .className(model.getClassName())
+                            .groupId(model.getGroupId())
+                            .groupName(model.getGroupName())
+                            .studentId(model.getStudentId())
+                            .studentName(model.getStudentName())
+                            .examName(model.getExamName())
+                            .answers(model.getAnswers())
+                            .clickNextTimeList(model.getClickNextTimeList())
+                            .build()
+            ) == 1;
+            if (success) {
+                // 删除考试状态
+                examStateService.deleteExamState(model.getStudentId(), model.getGroupId(), model.getExamName());
+                // 删除题目状态
+                examStateService.deletePuzzleState(model.getStudentId(), model.getGroupId(), model.getExamName());
 
-        return examService.addStudentAnswerRecord(
-                GroupExamStudentAnswerRecordModel.builder()
-                        .classId(model.getClassId())
-                        .className(model.getClassName())
-                        .groupId(model.getGroupId())
-                        .groupName(model.getGroupName())
-                        .studentId(model.getStudentId())
-                        .studentName(model.getStudentName())
-                        .examName(model.getExamName())
-                        .answers(model.getAnswers())
-                        .clickNextTimeList(model.getClickNextTimeList())
-                        .build()
-        ) == 1;
-
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            redisLockService.releaseLock(lock);
+        }
     }
 
     @Override
     public List<StudentExamRecordModel> examRecords(int groupId, String examName, String studentId) {
-        // 题目
-        List<GroupExamDetailModel> detailModels = queryExamDetail(groupId, examName, true, true);
-        // 作答
+        GroupExamMetaModel metaModel = examService.queryGroupExamMeta(groupId, examName);
+        if (null == metaModel) {
+            return new ArrayList<>();
+        }
+
+        // 作答记录
         GroupExamStudentAnswerRecordModel answerModel = queryAnswerRecord(groupId, examName, studentId);
 
-        return detailModels.stream().map(detail -> {
-            StudentExamRecordModel recordModel = StudentExamRecordModel
-                    .builder()
-                    .groupId(detail.getGroupId())
-                    .groupName(detail.getGroupName())
-                    .examName(detail.getExamName())
-                    .content(detail.getContent())
-                    .choices(detail.getChoices())
-                    .images(detail.getImages())
-                    .puzzleIdx(detail.getPuzzleIdx())
-                    .answer(detail.getAnswer())
-                    .analysis(detail.getAnalysis())
-                    .knowledgePoints(detail.getKnowledgePoints())
-                    .build();
-            if (null != answerModel && answerModel.getAnswers().containsKey(String.valueOf(detail.getPuzzleIdx()))) {
-                recordModel.setYourChoice(
-                        answerModel.getAnswers().get(String.valueOf(detail.getPuzzleIdx()))
-                );
-                recordModel.setStatus("已作答");
-            } else {
-                recordModel.setStatus("未作答");
+        List<GroupExamDetailModel> detailModels;
+        // 考试还没有结束, 不公布答案
+        if (new Date().before(metaModel.getEndTime())) {
+            // 考试未结束并且还未作答, 直接返回空
+            if (null == answerModel) {
+                return new ArrayList<>();
             }
-            return recordModel;
-        }).collect(Collectors.toList());
+            detailModels = queryExamDetail(groupId, examName, false, false);
+            return detailModels.stream().map(detail -> {
+                StudentExamRecordModel recordModel = StudentExamRecordModel
+                        .builder()
+                        .groupId(detail.getGroupId())
+                        .groupName(detail.getGroupName())
+                        .examName(detail.getExamName())
+                        .content(detail.getContent())
+                        .choices(detail.getChoices())
+                        .images(detail.getImages())
+                        .puzzleIdx(detail.getPuzzleIdx())
+                        .build();
+                if (answerModel.getAnswers().containsKey(String.valueOf(detail.getPuzzleIdx()))) {
+                    recordModel.setYourChoice(
+                            answerModel.getAnswers().get(String.valueOf(detail.getPuzzleIdx()))
+                    );
+                    recordModel.setStatus("已作答");
+                } else {
+                    recordModel.setStatus("未作答");
+                }
+                return recordModel;
+            }).collect(Collectors.toList());
+        } else {
+            // 考试已结束, 不管是否作答都返回答案
+            detailModels = queryExamDetail(groupId, examName, true, true);
+            return detailModels.stream().map(detail -> {
+                StudentExamRecordModel recordModel = StudentExamRecordModel
+                        .builder()
+                        .groupId(detail.getGroupId())
+                        .groupName(detail.getGroupName())
+                        .examName(detail.getExamName())
+                        .content(detail.getContent())
+                        .choices(detail.getChoices())
+                        .images(detail.getImages())
+                        .puzzleIdx(detail.getPuzzleIdx())
+                        .answer(detail.getAnswer())
+                        .analysis(detail.getAnalysis())
+                        .knowledgePoints(detail.getKnowledgePoints())
+                        .build();
+                if (null != answerModel && answerModel.getAnswers().containsKey(String.valueOf(detail.getPuzzleIdx()))) {
+                    recordModel.setYourChoice(
+                            answerModel.getAnswers().get(String.valueOf(detail.getPuzzleIdx()))
+                    );
+                    recordModel.setStatus("已作答");
+                } else {
+                    recordModel.setStatus("未作答");
+                }
+                return recordModel;
+            }).collect(Collectors.toList());
+        }
+    }
+
+    @Override
+    public Boolean syncPuzzleRecord(String studentId, GroupExamMetaModel metaModel, SyncPuzzleModel puzzleModel) {
+        return examStateService.syncPuzzleRecord(studentId, metaModel, puzzleModel);
     }
 }

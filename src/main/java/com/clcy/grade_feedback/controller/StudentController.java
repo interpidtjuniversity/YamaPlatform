@@ -3,6 +3,7 @@ package com.clcy.grade_feedback.controller;
 import com.clcy.grade_feedback.manager.StudentManager;
 import com.clcy.grade_feedback.model.ResultModel;
 import com.clcy.grade_feedback.model.v2.*;
+import com.clcy.grade_feedback.model.v3.*;
 import com.clcy.grade_feedback.utils.UserHolder;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,17 @@ public class StudentController {
     }
 
     /**
+     * 同步考试状态
+     * */
+    @ResponseBody
+    @RequestMapping("/syncExamState")
+    public ResultModel<Boolean> syncExamPuzzles(HttpServletRequest request, HttpServletResponse response, @RequestBody SyncExamModel syncModel) {
+        return null;
+    }
+
+    /**
      * 发题目接口, 返回某个学生某次考试的所有题目
+     * @invalided 此接口废弃
      * */
     @ResponseBody
     @RequestMapping("/examPuzzles")
@@ -62,8 +73,63 @@ public class StudentController {
                 return ResultModel.CommonResult(details).success(Boolean.FALSE).message("考试已结束");
             }
         }
-
+        // 查询是否有已经开始的考试SyncExamModel
+        // 没有的话返回全新的考试
         return ResultModel.CommonResult(studentManager.queryExamDetail(groupId, examName, false, false));
+    }
+
+    @ResponseBody
+    @RequestMapping("/startExam")
+    public ResultModel<GroupExamModel> startExam(HttpServletRequest request, HttpServletResponse response, @RequestParam("examName") String examName, @RequestParam("groupId") int groupId) {
+        String studentId = UserHolder.getValue().getStudentId();
+        GroupExamMetaModel examMeta = studentManager.queryExamMeta(groupId, examName);
+
+        ResultModel<GroupExamModel> ans = ResultModel.CommonResult(null);
+        if (null == examMeta) {
+            return ans.success(Boolean.FALSE).message("考试不存在");
+        } else {
+            if (examMeta.getStartTime().after(new Date())) {
+                return ans.success(Boolean.FALSE).message("考试未开始");
+            }
+            if (examMeta.getEndTime().before(new Date())) {
+                return ans.success(Boolean.FALSE).message("考试已结束");
+            }
+        }
+        // 查询是否有已经开始的考试SyncExamModel
+        // 没有的话返回全新的考试
+        return ResultModel.CommonResult(studentManager.fetchExam(studentId, examMeta, true));
+    }
+
+    @ResponseBody
+    @RequestMapping("/syncPuzzle")
+    public ResultModel<GroupExamModel> syncPuzzle(HttpServletRequest request, HttpServletResponse response,
+                                                  @RequestParam("groupId") int groupId,
+                                                  @RequestParam("examName") String examName,
+                                                  @RequestParam("puzzleIdx") String puzzleIdx,
+                                                  @RequestParam("answer") String answer) {
+        String studentId = UserHolder.getValue().getStudentId();
+        // 这里加缓存, 实现快速失败
+        GroupExamMetaModel examMeta = studentManager.queryExamMeta(groupId, examName);
+
+        ResultModel<GroupExamModel> ans = ResultModel.CommonResult(null);
+        if (null == examMeta) {
+            return ans.success(Boolean.FALSE).message("考试不存在");
+        } else {
+            if (examMeta.getStartTime().after(new Date())) {
+                return ans.success(Boolean.FALSE).message("考试未开始");
+            }
+            if (examMeta.getEndTime().before(new Date())) {
+                return ans.success(Boolean.FALSE).message("考试已结束");
+            }
+        }
+        // 同步题目记录
+        studentManager.syncPuzzleRecord(studentId, examMeta,
+                SyncPuzzleModel.builder()
+                        .puzzleIdx(puzzleIdx)
+                        .answer(answer)
+                        .clickNextTime(new Date().getTime())
+                        .build());
+        return ResultModel.CommonResult(studentManager.fetchExam(studentId, examMeta, false));
     }
 
     /**

@@ -11,6 +11,8 @@ public interface GroupService {
 
     List<GroupClassInfoModel> queryClassGroups(int classId);
 
+    GroupClassInfoModel queryGroupClass(int groupId);
+
     int createGroupInstance(GroupInstanceModel model);
 
     List<GroupInstanceModel> queryGroupInstanceByGroupId(int groupId);

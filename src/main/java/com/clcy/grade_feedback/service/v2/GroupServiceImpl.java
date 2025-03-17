@@ -88,4 +88,19 @@ public class GroupServiceImpl implements GroupService{
     public int updateGroupInstanceExam(int groupId, String oldExamName, String newExamName) {
         return groupInstanceDao.updateGroupInstanceExam(groupId, oldExamName, newExamName);
     }
+
+    @Override
+    public GroupClassInfoModel queryGroupClass(int groupId) {
+        GroupClassInfo info = groupClassInfoDao.queryGroupClass(groupId);
+        if (null != info) {
+            return GroupClassInfoModel
+                    .builder()
+                    .classId(info.getClassId())
+                    .className(info.getClassName())
+                    .groupId(groupId)
+                    .groupName(info.getGroupName())
+                    .build();
+        }
+        return null;
+    }
 }

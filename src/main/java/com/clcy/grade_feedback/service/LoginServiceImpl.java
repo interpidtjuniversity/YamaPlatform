@@ -69,4 +69,10 @@ public class LoginServiceImpl implements LoginService{
         }
         return false;
     }
+
+    @Override
+    public String studentName(String studentId) {
+        UserLogin userLogin = userLoginDao.queryStudentName(studentId);
+        return null == userLogin ? null : userLogin.getStudentName();
+    }
 }

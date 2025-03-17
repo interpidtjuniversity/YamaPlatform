@@ -2,15 +2,23 @@ package com.clcy.grade_feedback.model;
 
 import lombok.*;
 
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResultModel<T> {
 
+    // 业务主数据
     @Getter
     @Setter
     private T data;
+
+    // 业务扩展数据
+    @Getter
+    @Setter
+    private Map<String, Object> extInfo;
 
     @Getter
     @Setter
@@ -42,6 +50,11 @@ public class ResultModel<T> {
 
     public ResultModel<T> success(Boolean success) {
         this.setSuccess(success);
+        return this;
+    }
+
+    public ResultModel<T> extInfo(Map<String, Object> extInfo) {
+        this.setExtInfo(extInfo);
         return this;
     }
 }

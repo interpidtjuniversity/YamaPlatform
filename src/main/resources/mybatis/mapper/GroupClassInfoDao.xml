@@ -31,4 +31,12 @@
             limit 100
     </select>
 
+    <select id="queryGroupClass" resultMap="GroupClassInfoMap">
+        select
+            *
+        from grade_feedback.group_class_info
+        where id = #{groupId}
+            limit 1
+    </select>
+
 </mapper>
