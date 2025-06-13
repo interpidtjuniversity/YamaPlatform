@@ -28,6 +28,14 @@
             limit 5000
     </select>
 
+    <select id="queryInstanceByGroupIdAndExam" resultMap="GroupInstanceMap">
+        select
+            *
+        from grade_feedback.group_instance
+        where group_id = #{groupId} and exam_name = #{examName}
+            limit 1
+    </select>
+
     <update id="updateGroupInstanceExam">
         update grade_feedback.group_instance
         <set>

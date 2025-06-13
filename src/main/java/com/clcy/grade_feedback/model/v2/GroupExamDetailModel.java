@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -62,4 +63,8 @@ public class GroupExamDetailModel {
     @Getter
     @Setter
     private String knowledgePoints;
+
+    @Getter
+    @Setter
+    private Map<String, Object> extInfo;
 }

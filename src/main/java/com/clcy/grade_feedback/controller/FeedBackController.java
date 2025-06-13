@@ -3,6 +3,7 @@ package com.clcy.grade_feedback.controller;
 import com.clcy.grade_feedback.annotation.Limit;
 import com.clcy.grade_feedback.enumerate.LimitType;
 import com.clcy.grade_feedback.model.FeedBackModel;
+import com.clcy.grade_feedback.model.FeedBackPuzzleModel;
 import com.clcy.grade_feedback.model.ResultModel;
 import com.clcy.grade_feedback.service.ALiYunOssService;
 import com.clcy.grade_feedback.service.FeedBackService;
@@ -60,5 +61,45 @@ public class FeedBackController {
         } catch (IOException e) {
             return ResultModel.FAILURE();
         }
+    }
+
+    @ResponseBody
+    @RequestMapping("/uploadAudio")
+    @Limit(period = 10, count = 10, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.uploadAudio")
+    public ResultModel<Object> uploadAudio(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
+        try {
+            byte[] data = file.getBytes();
+            String fileId = UserHolder.getValue().getStudentId() + System.currentTimeMillis() + file.getOriginalFilename();
+            return ResultModel.CommonResult(aLiYunOssService.uploadAudio(fileId, new ByteArrayInputStream(data)));
+        } catch (IOException e) {
+            return ResultModel.FAILURE();
+        }
+    }
+
+
+    @ResponseBody
+    @RequestMapping("/needFeedBackPuzzles")
+    @Limit(period = 10, count = 5, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.needFeedBackPuzzles")
+    public ResultModel<Object> needFeedBackPuzzles(HttpServletRequest request, HttpServletResponse response, @RequestParam("examName") String examName) {
+        String studentId = UserHolder.getValue().getStudentId();
+        return ResultModel.CommonResult(feedBackService.queryExamNeedFeedBackPuzzles(studentId, examName));
+    }
+
+    @ResponseBody
+    @RequestMapping("/feedbackPuzzle")
+    @Limit(period = 10, count = 5, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.feedbackPuzzle")
+    public ResultModel<Boolean> feedbackPuzzle(HttpServletRequest request, HttpServletResponse response, @RequestBody FeedBackPuzzleModel feedBackPuzzleModel) {
+        String studentId = UserHolder.getValue().getStudentId();
+        feedBackPuzzleModel.setStudentId(studentId);
+        return ResultModel.CommonResult(feedBackService.feedBackPuzzle(feedBackPuzzleModel));
+    }
+
+    @ResponseBody
+    @RequestMapping("/cancelFeedBackPuzzle")
+    @Limit(period = 10, count = 5, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.cancelFeedBackPuzzle")
+    public ResultModel<Boolean> cancelFeedBackPuzzle(HttpServletRequest request, HttpServletResponse response, @RequestBody FeedBackPuzzleModel feedBackPuzzleModel) {
+        String studentId = UserHolder.getValue().getStudentId();
+        feedBackPuzzleModel.setStudentId(studentId);
+        return ResultModel.CommonResult(feedBackService.cancelFeedBackPuzzle(feedBackPuzzleModel));
     }
 }

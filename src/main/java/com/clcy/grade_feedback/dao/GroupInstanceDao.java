@@ -11,5 +11,7 @@ public interface GroupInstanceDao {
 
     List<GroupInstance> queryInstanceByGroupId(@Param("groupId") int groupId);
 
+    GroupInstance queryInstanceByGroupIdAndExam(@Param("groupId") int groupId, @Param("examName") String examName);
+
     int updateGroupInstanceExam(@Param("groupId") int groupId, @Param("oldExamName") String oldExamName, @Param("newExamName") String newExamName);
 }

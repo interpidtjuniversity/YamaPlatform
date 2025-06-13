@@ -18,11 +18,19 @@ public class ALiYunOssServiceImpl implements ALiYunOssService, InitializingBean 
 
     private OSS ossClient;
 
+    private OSS audioOssClient;
+
     private static final String endpoint = "https://oss-cn-shanghai.aliyuncs.com";
+
+    private static final String audioEndpoint = "https://oss-cn-chengdu.aliyuncs.com";
 
     private static final String bucketName = "aliyun-wb-ei1y786hj2";
 
+    private static final String audioBucketName = "snnuphysicsaudio";
+
     private static final String dir = "feed_back/";
+
+    private static final String audioDir = "feed_back/";
 
     private static final int expirationOffset = 3;
 
@@ -30,6 +38,7 @@ public class ALiYunOssServiceImpl implements ALiYunOssService, InitializingBean 
     public void afterPropertiesSet() throws Exception {
         EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
         ossClient = new OSSClientBuilder().build(endpoint, credentialsProvider);
+        audioOssClient = new OSSClientBuilder().build(audioEndpoint, credentialsProvider);
     }
 
 
@@ -54,6 +63,29 @@ public class ALiYunOssServiceImpl implements ALiYunOssService, InitializingBean 
         }
         return null;
     }
+
+    @Override
+    public String uploadAudio(String id, InputStream data) {
+        try {
+            ObjectMetadata meta = new ObjectMetadata();
+            meta.setExpirationTime(nextOffsetDate(expirationOffset));
+            audioOssClient.putObject(audioBucketName, audioDir + id, data, meta);
+            return gerAudioUrl(id);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public String gerAudioUrl(String id) {
+        Date expiration = nextOffsetDate(expirationOffset);
+        URL url = audioOssClient.generatePresignedUrl(audioBucketName, audioDir + id, expiration);
+        if (null != url) {
+            return url.toString();
+        }
+        return null;
+    }
+
 
     private static Date nextOffsetDate(int offset) {
         Calendar calendar = Calendar.getInstance();

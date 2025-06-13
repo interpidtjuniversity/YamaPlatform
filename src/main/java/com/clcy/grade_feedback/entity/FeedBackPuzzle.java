@@ -1,15 +1,15 @@
-package com.clcy.grade_feedback.model;
+package com.clcy.grade_feedback.entity;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.sql.Timestamp;
 
 @Data
 @Builder
-public class FeedBackModel {
+public class FeedBackPuzzle {
 
     @Getter
     @Setter
@@ -21,7 +21,7 @@ public class FeedBackModel {
 
     @Getter
     @Setter
-    private String studentName;
+    private int groupId;
 
     @Getter
     @Setter
@@ -29,11 +29,7 @@ public class FeedBackModel {
 
     @Getter
     @Setter
-    private String feedbackText;
-
-    @Getter
-    @Setter
-    private List<String> images;
+    private int puzzleIdx;
 
     @Getter
     @Setter
@@ -41,5 +37,13 @@ public class FeedBackModel {
 
     @Getter
     @Setter
-    private String deadline;
+    private String feedBackAudio;
+
+    @Getter
+    @Setter
+    private Timestamp deadline;
+
+    @Getter
+    @Setter
+    private String tag;
 }

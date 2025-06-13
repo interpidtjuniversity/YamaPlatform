@@ -5,11 +5,9 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Data
 @Builder
-public class FeedBackModel {
+public class FeedBackPuzzleModel {
 
     @Getter
     @Setter
@@ -17,11 +15,15 @@ public class FeedBackModel {
 
     @Getter
     @Setter
+    private int classId;
+
+    @Getter
+    @Setter
     private String studentId;
 
     @Getter
     @Setter
-    private String studentName;
+    private int groupId;
 
     @Getter
     @Setter
@@ -29,11 +31,7 @@ public class FeedBackModel {
 
     @Getter
     @Setter
-    private String feedbackText;
-
-    @Getter
-    @Setter
-    private List<String> images;
+    private int puzzleIdx;
 
     @Getter
     @Setter
@@ -41,5 +39,5 @@ public class FeedBackModel {
 
     @Getter
     @Setter
-    private String deadline;
+    private String feedBackAudio;
 }
