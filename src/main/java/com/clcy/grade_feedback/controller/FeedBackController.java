@@ -66,10 +66,10 @@ public class FeedBackController {
     @ResponseBody
     @RequestMapping("/uploadAudio")
     @Limit(period = 10, count = 10, limitType = LimitType.IP_METHOD, prefix = "FeedBackController.uploadAudio")
-    public ResultModel<Object> uploadAudio(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
+    public ResultModel<Object> uploadAudio(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file, @RequestParam("examName") String examName, @RequestParam("puzzleIdx") Integer puzzleIdx) {
         try {
             byte[] data = file.getBytes();
-            String fileId = UserHolder.getValue().getStudentId() + System.currentTimeMillis() + file.getOriginalFilename();
+            String fileId = UserHolder.getValue().getStudentId() + "_" + examName + "_" + puzzleIdx.toString() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
             return ResultModel.CommonResult(aLiYunOssService.uploadAudio(fileId, new ByteArrayInputStream(data)));
         } catch (IOException e) {
             return ResultModel.FAILURE();
