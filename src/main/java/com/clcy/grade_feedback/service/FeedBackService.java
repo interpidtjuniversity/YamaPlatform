@@ -19,4 +19,9 @@ public interface FeedBackService {
     boolean feedBackPuzzle(FeedBackPuzzleModel feedBackPuzzleModel);
 
     boolean cancelFeedBackPuzzle(FeedBackPuzzleModel feedBackPuzzleModel);
+
+    Integer getStudentExamGroup(int classId, String studentId, String examName);
+
+    // 由每次考试完成后自动生成
+    boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, Integer puzzleIdx);
 }

@@ -14,6 +14,31 @@
         <result property="tag" column="tag" jdbcType="VARCHAR"/>
     </resultMap>
 
+    <insert id="insertOne" parameterType="com.clcy.grade_feedback.entity.FeedBack">
+        insert into grade_feedback.feedback_table
+        (
+            studentId,
+            studentName,
+            examName,
+            feedbackStatus,
+            feedbackContent,
+            feedbackImages,
+            deadline,
+            tag
+        )
+        values
+        (
+            #{feedBack.studentId},
+            #{feedBack.studentName},
+            #{feedBack.examName},
+            #{feedBack.feedbackStatus},
+            #{feedBack.feedbackContent},
+            #{feedBack.feedbackImages},
+            #{feedBack.deadline},
+            #{feedBack.tag}
+        )
+    </insert>
+
     <!--查询单个-->
     <select id="queryByStudentId" resultMap="FeedBackMap">
         select

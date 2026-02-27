@@ -10,4 +10,7 @@ public interface FeedBackDao {
     List<FeedBack> queryByStudentId(@Param("studentId") String studentId);
 
     boolean updateFeedBack(@Param("feedBack") FeedBack feedBack);
+
+    // 插入一条记录
+    int insertOne(@Param("feedBack") FeedBack feedBack);
 }

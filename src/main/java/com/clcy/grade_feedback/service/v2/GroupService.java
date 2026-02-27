@@ -17,5 +17,7 @@ public interface GroupService {
 
     List<GroupInstanceModel> queryGroupInstanceByGroupId(int groupId);
 
+    List<GroupInstanceModel> queryGroupInstanceByClassIdAndExamName(int classId, String examName);
+
     int updateGroupInstanceExam(int groupId, String oldExamName, String newExamName);
 }

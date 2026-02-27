@@ -84,6 +84,21 @@ public class GroupServiceImpl implements GroupService{
         ).sorted(Comparator.comparingInt(GroupInstanceModel::getId)).collect(Collectors.toList());
     }
 
+    public List<GroupInstanceModel> queryGroupInstanceByClassIdAndExamName(int classId, String examName){
+        List<GroupInstance> instances = groupInstanceDao.queryInstanceByClassIdAndExamName(classId, examName);
+        return instances.stream().map(instance ->
+                GroupInstanceModel.builder()
+                        .id(instance.getId())
+                        .classId(instance.getClassId())
+                        .className(instance.getClassName())
+                        .groupId(instance.getGroupId())
+                        .groupName(instance.getGroupName())
+                        .examName(instance.getExamName())
+                        .studentsId(JSONArray.parseArray(instance.getStudentsId(), String.class))
+                        .build()
+        ).sorted(Comparator.comparingInt(GroupInstanceModel::getId)).collect(Collectors.toList());
+    }
+
     @Override
     public int updateGroupInstanceExam(int groupId, String oldExamName, String newExamName) {
         return groupInstanceDao.updateGroupInstanceExam(groupId, oldExamName, newExamName);

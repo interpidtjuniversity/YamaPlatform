@@ -1,5 +1,6 @@
 singleServerConfig:
   address: "redis://127.0.0.1:6379"  # Redis服务器地址
+  #address: "redis://8.134.136.53:6379"  # Redis服务器地址
   password: "cy19991116"          # 密码（无密码可设为null）
   database: 0                        # 数据库索引
 # 锁配置

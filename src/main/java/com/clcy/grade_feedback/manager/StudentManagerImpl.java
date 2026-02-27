@@ -5,6 +5,7 @@ import com.clcy.grade_feedback.model.v3.GroupExamModel;
 import com.clcy.grade_feedback.model.v3.SyncExamModel;
 import com.clcy.grade_feedback.model.v3.SyncPuzzleModel;
 import com.clcy.grade_feedback.service.GuavaCacheService;
+import com.clcy.grade_feedback.service.FeedBackService;
 import com.clcy.grade_feedback.service.v2.ClassService;
 import com.clcy.grade_feedback.service.v2.ExamService;
 import com.clcy.grade_feedback.service.v2.GroupService;
@@ -39,6 +40,9 @@ public class StudentManagerImpl implements StudentManager{
 
     @Autowired
     private RedisLockService redisLockService;
+
+    @Autowired
+    private FeedBackService feedBackService;
 
     @Override
     public List<StudentClassMetaModel> queryClassList(String studentId) {
@@ -109,7 +113,17 @@ public class StudentManagerImpl implements StudentManager{
         return result.stream().sorted(Comparator.comparingInt(StudentExamMetaModel::getId)).collect(Collectors.toList());
     }
 
-
+    @Override
+    public void generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, int groupId) {
+        List<Integer> correctPuzzles = queryExamCorrectAnswerPuzzle(classId, studentId, examName, groupId);
+        // 2.随机抽取一道题目
+        if (correctPuzzles.size() == 0) {
+            return;
+        }
+        int puzzleIdx = correctPuzzles.get(new Random().nextInt(correctPuzzles.size()));
+        // 3.生成反馈题目
+        feedBackService.generateFeedBackPuzzle(classId, studentId, studentName, examName, groupId, puzzleIdx);
+    }
 
     @Override
     public List<GroupExamDetailModel> queryExamDetail(int groupId, String examName, boolean containsAnswer, boolean containsAnalysis) {
@@ -327,5 +341,28 @@ public class StudentManagerImpl implements StudentManager{
     @Override
     public Boolean syncPuzzleRecord(String studentId, GroupExamMetaModel metaModel, SyncPuzzleModel puzzleModel) {
         return examStateService.syncPuzzleRecord(studentId, metaModel, puzzleModel);
+    }
+
+        // 查询某个学生某次考试的正确答案的题目索引
+    public List<Integer> queryExamCorrectAnswerPuzzle(int classId, String studentId, String examName, Integer groupId) {
+        List<Integer> correctPuzzles = Lists.newArrayList();
+        // 再查询该学生的答题记录
+        GroupExamStudentAnswerRecordModel record = examService.queryStudentAnswerRecord(groupId, examName, studentId);
+        // 未作答
+        if (null == record) {
+            return correctPuzzles;
+        }
+
+        // 已作答
+        List<GroupExamDetailModel> detailModels = guavaCacheService.getGroupExamDetails(groupId, examName);
+        Map<Integer, String> ansMap = detailModels.stream().collect(Collectors.toMap(GroupExamDetailModel::getPuzzleIdx, GroupExamDetailModel::getAnswer));
+        // 作答正确的题目索引
+        record.getAnswers().forEach((key, value) -> {
+            if (value.equals(ansMap.get(Integer.valueOf(key)))) {
+                correctPuzzles.add(Integer.valueOf(key));
+            }   
+        });
+
+        return correctPuzzles;
     }
 }

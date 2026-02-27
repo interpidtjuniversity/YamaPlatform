@@ -7,6 +7,9 @@ import java.util.List;
 
 public interface FeedBackPuzzleDao {
 
+    // 插入一条记录
+    int insertOne(@Param("feedBackPuzzle") FeedBackPuzzle feedBackPuzzle);
+
     List<FeedBackPuzzle> queryByStudentId(@Param("studentId") String studentId, @Param("groupId") int groupId, @Param("examName") String examName);
 
     FeedBackPuzzle queryOne(@Param("studentId") String studentId, @Param("groupId") int groupId, @Param("examName") String examName, @Param("puzzleIdx") int puzzleIdx);

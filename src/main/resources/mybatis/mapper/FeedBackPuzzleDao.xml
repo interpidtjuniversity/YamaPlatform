@@ -38,6 +38,31 @@
               limit 1
     </select>
 
+    <insert id="insertOne" parameterType="com.clcy.grade_feedback.entity.FeedBackPuzzle">
+        insert into grade_feedback.feedback_puzzle_table
+        (
+            studentId,
+            groupId,
+            examName,
+            puzzleIdx,
+            feedbackStatus,
+            feedBackAudio,
+            deadline,
+            tag
+        )
+        values
+        (
+            #{feedBackPuzzle.studentId},
+            #{feedBackPuzzle.groupId},
+            #{feedBackPuzzle.examName},
+            #{feedBackPuzzle.puzzleIdx},
+            #{feedBackPuzzle.feedbackStatus},
+            #{feedBackPuzzle.feedBackAudio},
+            #{feedBackPuzzle.deadline},
+            #{feedBackPuzzle.tag}
+        )
+    </insert>
+
     <update id="feedBackPuzzle">
         update grade_feedback.feedback_puzzle_table
         <set>

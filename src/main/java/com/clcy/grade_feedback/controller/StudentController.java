@@ -140,7 +140,12 @@ public class StudentController {
     public ResultModel<Boolean> submitExam(HttpServletRequest request, HttpServletResponse response, @RequestBody GroupExamStudentAnswerRecordModel submitModel) {
         String studentId = UserHolder.getValue().getStudentId();
         submitModel.setStudentId(studentId);
-        return ResultModel.CommonResult(studentManager.submitExam(submitModel));
+
+        studentManager.submitExam(submitModel);
+        // 这里提交后立即产生几道反馈题目
+        studentManager.generateFeedBackPuzzle(submitModel.getClassId(), studentId, submitModel.getStudentName(), submitModel.getExamName(), submitModel.getGroupId());
+
+        return ResultModel.CommonResult(true);
     }
 
     /**

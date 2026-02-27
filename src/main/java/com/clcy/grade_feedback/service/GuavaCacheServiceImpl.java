@@ -26,25 +26,25 @@ public class GuavaCacheServiceImpl implements GuavaCacheService{
     private static final Cache<String, Object> CACHE = CacheBuilder.newBuilder()
             .concurrencyLevel(Runtime.getRuntime().availableProcessors())
             .maximumSize(100)
-            .expireAfterAccess(600, TimeUnit.SECONDS)
+            .expireAfterAccess(300, TimeUnit.SECONDS)
             .build();
 
     private static final Cache<Integer, List<GroupInstanceModel>> GROUP_INSTANCES_CACHE = CacheBuilder.newBuilder()
             .concurrencyLevel(Runtime.getRuntime().availableProcessors())
             .maximumSize(100)
-            .expireAfterWrite(600, TimeUnit.SECONDS)
+            .expireAfterWrite(300, TimeUnit.SECONDS)
             .build();
 
     private static final Cache<Integer, List<GroupExamMetaModel>> GROUP_EXAMS_CACHE = CacheBuilder.newBuilder()
             .concurrencyLevel(Runtime.getRuntime().availableProcessors())
             .maximumSize(100)
-            .expireAfterWrite(600, TimeUnit.SECONDS)
+            .expireAfterWrite(300, TimeUnit.SECONDS)
             .build();
 
     private static final Cache<String, List<GroupExamDetailModel>> GROUP_EXAM_DETAILS_CACHE = CacheBuilder.newBuilder()
             .concurrencyLevel(Runtime.getRuntime().availableProcessors())
             .maximumSize(500)
-            .expireAfterWrite(600, TimeUnit.SECONDS)
+            .expireAfterWrite(300, TimeUnit.SECONDS)
             .build();
 
     private static final String TOKEN_PREFIX = "TOKEN_";

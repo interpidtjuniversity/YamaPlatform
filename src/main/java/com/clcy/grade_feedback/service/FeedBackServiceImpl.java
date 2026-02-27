@@ -9,6 +9,8 @@ import com.clcy.grade_feedback.model.v2.GroupExamDetailModel;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -135,7 +137,8 @@ public class FeedBackServiceImpl implements FeedBackService{
         );
     }
 
-    private Integer getStudentExamGroup(int classId, String studentId, String examName) {
+    @Override
+    public Integer getStudentExamGroup(int classId, String studentId, String examName) {
         List<GroupClassInfo> groups = groupClassInfoDao.queryGroupsInClass(classId);
         if (groups.size() == 0) {
             return null;
@@ -175,6 +178,39 @@ public class FeedBackServiceImpl implements FeedBackService{
                         .examName(feedBackPuzzle.getExamName())
                         .puzzleIdx(feedBackPuzzle.getPuzzleIdx())
                         .build()
-        );    }
+        );    
+    }
+        
+    @Override
+    public boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, Integer puzzleIdx) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MINUTE, 30);  // 30分钟后截止
+
+        feedBackDao.insertOne(FeedBack.builder()
+                .studentId(studentId)
+                .studentName(studentName)
+                .examName(examName)
+                .feedbackContent("")
+                .feedbackImages(JSONObject.toJSONString(new ArrayList<>()))
+                .feedbackStatus("未反馈")
+                .deadline(Timestamp.from(calendar.toInstant()))
+                .tag(examName)
+                .build()
+        );
+
+        feedBackPuzzleDao.insertOne(FeedBackPuzzle.builder()
+                .studentId(studentId)
+                .groupId(groupId)
+                .examName(examName)
+                .puzzleIdx(puzzleIdx)
+                .feedbackStatus("未反馈")
+                .feedBackAudio("")
+                .deadline(Timestamp.from(calendar.toInstant()))
+                .tag(examName)
+                .build()
+        );
+
+        return true;
+    }
 
 }

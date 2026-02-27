@@ -14,6 +14,9 @@ public interface StudentManager {
     // 查询某个学生的考试列表
     List<StudentExamMetaModel> queryExamList(int classId, String studentId);
 
+    // 生成反馈题目
+    void generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, int groupId);
+
     // 查询某次考试的考题
     List<GroupExamDetailModel> queryExamDetail(int groupId, String examName, boolean containsAnswer, boolean containsAnalysis);
 
