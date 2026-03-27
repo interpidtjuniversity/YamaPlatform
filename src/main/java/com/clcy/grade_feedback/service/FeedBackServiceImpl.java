@@ -6,6 +6,7 @@ import com.clcy.grade_feedback.dao.*;
 import com.clcy.grade_feedback.entity.*;
 import com.clcy.grade_feedback.model.*;
 import com.clcy.grade_feedback.model.v2.GroupExamDetailModel;
+import com.clcy.grade_feedback.model.v2.GroupExamMetaModel;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -182,9 +183,8 @@ public class FeedBackServiceImpl implements FeedBackService{
     }
         
     @Override
-    public boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, List<Integer> puzzlesIdx) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MINUTE, 720);  // 12小时后截止
+    public boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, List<Integer> puzzlesIdx, GroupExamMetaModel metaModel) {
+        // fix 这里直接设置为考试的截至时间就行，不然还要改前端，会很麻烦
 
         feedBackDao.insertOne(FeedBack.builder()
                 .studentId(studentId)
@@ -193,7 +193,7 @@ public class FeedBackServiceImpl implements FeedBackService{
                 .feedbackContent("")
                 .feedbackImages(JSONObject.toJSONString(new ArrayList<>()))
                 .feedbackStatus("未反馈")
-                .deadline(Timestamp.from(calendar.toInstant()))
+                .deadline(metaModel.getEndTime())
                 .tag(examName)
                 .build()
         );
@@ -207,7 +207,7 @@ public class FeedBackServiceImpl implements FeedBackService{
                                         .puzzleIdx(puzzleId)
                                         .feedbackStatus("未反馈")
                                         .feedBackAudio("")
-                                        .deadline(Timestamp.from(calendar.toInstant()))
+                                        .deadline(metaModel.getEndTime())
                                         .tag(examName)
                                         .build()
                         ).collect(Collectors.toList());

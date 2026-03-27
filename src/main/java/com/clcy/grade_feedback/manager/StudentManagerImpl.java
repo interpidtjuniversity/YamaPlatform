@@ -117,12 +117,13 @@ public class StudentManagerImpl implements StudentManager{
 
     @Override
     public void generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, int groupId) {
+        GroupExamMetaModel examMetaModel = examService.queryGroupExamMeta(groupId, examName);
         // 1.查询考试的题目
         List<GroupExamDetailModel>puzzles = examService.queryGroupExamDetail(groupId, examName, false, false);
         // 2.抽取最后5道题目
         List<Integer> puzzlesId = IntStream.rangeClosed(puzzles.size() - 4, puzzles.size()).boxed().collect(Collectors.toList());
         // 3.生成反馈题目
-        feedBackService.generateFeedBackPuzzle(classId, studentId, studentName, examName, groupId, puzzlesId);
+        feedBackService.generateFeedBackPuzzle(classId, studentId, studentName, examName, groupId, puzzlesId, examMetaModel);
     }
 
     @Override
