@@ -11,6 +11,7 @@ import com.clcy.grade_feedback.service.v2.ExamService;
 import com.clcy.grade_feedback.service.v2.GroupService;
 import com.clcy.grade_feedback.service.v3.ExamStateService;
 import com.clcy.grade_feedback.service.v3.RedisLockService;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.redisson.api.RLock;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class StudentManagerImpl implements StudentManager{
@@ -115,14 +117,12 @@ public class StudentManagerImpl implements StudentManager{
 
     @Override
     public void generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, int groupId) {
-        List<Integer> correctPuzzles = queryExamCorrectAnswerPuzzle(classId, studentId, examName, groupId);
-        // 2.随机抽取一道题目
-        if (correctPuzzles.size() == 0) {
-            return;
-        }
-        int puzzleIdx = correctPuzzles.get(new Random().nextInt(correctPuzzles.size()));
+        // 1.查询考试的题目
+        List<GroupExamDetailModel>puzzles = examService.queryGroupExamDetail(groupId, examName, false, false);
+        // 2.抽取最后5道题目
+        List<Integer> puzzlesId = IntStream.rangeClosed(puzzles.size() - 4, puzzles.size()).boxed().collect(Collectors.toList());
         // 3.生成反馈题目
-        feedBackService.generateFeedBackPuzzle(classId, studentId, studentName, examName, groupId, puzzleIdx);
+        feedBackService.generateFeedBackPuzzle(classId, studentId, studentName, examName, groupId, puzzlesId);
     }
 
     @Override

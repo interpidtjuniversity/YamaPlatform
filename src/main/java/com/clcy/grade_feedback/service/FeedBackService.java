@@ -23,5 +23,5 @@ public interface FeedBackService {
     Integer getStudentExamGroup(int classId, String studentId, String examName);
 
     // 由每次考试完成后自动生成
-    boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, Integer puzzleIdx);
+    boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, List<Integer> puzzlesIdx);
 }

@@ -63,6 +63,33 @@
         )
     </insert>
 
+    <insert id="batchInsert">
+        insert into grade_feedback.feedback_puzzle_table
+        (
+        studentId,
+        groupId,
+        examName,
+        puzzleIdx,
+        feedbackStatus,
+        feedBackAudio,
+        deadline,
+        tag
+        )
+        values
+        <foreach collection="feedBackPuzzles" item="item" separator=",">
+            (
+            #{item.studentId},
+            #{item.groupId},
+            #{item.examName},
+            #{item.puzzleIdx},
+            #{item.feedbackStatus},
+            #{item.feedBackAudio},
+            #{item.deadline},
+            #{item.tag}
+            )
+        </foreach>
+    </insert>
+
     <update id="feedBackPuzzle">
         update grade_feedback.feedback_puzzle_table
         <set>

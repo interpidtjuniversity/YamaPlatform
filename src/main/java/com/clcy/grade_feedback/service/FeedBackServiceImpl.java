@@ -182,9 +182,9 @@ public class FeedBackServiceImpl implements FeedBackService{
     }
         
     @Override
-    public boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, Integer puzzleIdx) {
+    public boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, List<Integer> puzzlesIdx) {
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MINUTE, 30);  // 30分钟后截止
+        calendar.add(Calendar.MINUTE, 720);  // 12小时后截止
 
         feedBackDao.insertOne(FeedBack.builder()
                 .studentId(studentId)
@@ -198,17 +198,21 @@ public class FeedBackServiceImpl implements FeedBackService{
                 .build()
         );
 
-        feedBackPuzzleDao.insertOne(FeedBackPuzzle.builder()
-                .studentId(studentId)
-                .groupId(groupId)
-                .examName(examName)
-                .puzzleIdx(puzzleIdx)
-                .feedbackStatus("未反馈")
-                .feedBackAudio("")
-                .deadline(Timestamp.from(calendar.toInstant()))
-                .tag(examName)
-                .build()
-        );
+        List<FeedBackPuzzle> feedBackPuzzles = puzzlesIdx.stream()
+                        .map(puzzleId ->
+                                FeedBackPuzzle.builder()
+                                        .studentId(studentId)
+                                        .groupId(groupId)
+                                        .examName(examName)
+                                        .puzzleIdx(puzzleId)
+                                        .feedbackStatus("未反馈")
+                                        .feedBackAudio("")
+                                        .deadline(Timestamp.from(calendar.toInstant()))
+                                        .tag(examName)
+                                        .build()
+                        ).collect(Collectors.toList());
+
+        feedBackPuzzleDao.batchInsert(feedBackPuzzles);
 
         return true;
     }
