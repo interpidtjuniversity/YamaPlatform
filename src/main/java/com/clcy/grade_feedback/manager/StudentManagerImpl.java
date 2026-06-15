@@ -260,6 +260,8 @@ public class StudentManagerImpl implements StudentManager{
                 examStateService.deleteExamState(model.getStudentId(), model.getGroupId(), model.getExamName());
                 // 删除题目状态
                 examStateService.deletePuzzleState(model.getStudentId(), model.getGroupId(), model.getExamName());
+                // 这里提交后立即产生几道反馈题目
+                generateFeedBackPuzzle(model.getClassId(), model.getStudentId(), model.getStudentName(), model.getExamName(), model.getGroupId());
 
                 return true;
             } else {
