@@ -99,15 +99,22 @@ public class GroupExamAutoSubmitter {
 
     private Set<String> scanKeys(String pattern) {
         Set<String> result = new HashSet<>();
-        RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
-        Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions()
-                .match(pattern)
-                .count(100) // 每次扫描数量
-                .build());
-        while (cursor.hasNext()) {
-            result.add(new String(cursor.next()));
+        // RedisConnection 和 Cursor 都必须显式关闭, 否则每轮定时任务都会泄漏一个 Redis 连接,
+        // 长期运行会耗尽连接池. 这里使用 try-with-resources 保证异常情况下也能归还连接.
+        try (RedisConnection connection = redisTemplate.getConnectionFactory().getConnection()) {
+            Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions()
+                    .match(pattern)
+                    .count(100) // 每次扫描数量
+                    .build());
+            try {
+                while (cursor.hasNext()) {
+                    // 显式指定 UTF-8 解码, 否则 Windows 默认 GBK 会让含中文 examName 的 key 乱码
+                    result.add(new String(cursor.next(), java.nio.charset.StandardCharsets.UTF_8));
+                }
+            } finally {
+                cursor.close();
+            }
         }
-        cursor.close();
         return result;
     }
 }

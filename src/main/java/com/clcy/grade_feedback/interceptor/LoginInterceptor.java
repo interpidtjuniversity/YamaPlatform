@@ -46,6 +46,8 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        // 无论本次请求是否抛异常, 都必须清理 ThreadLocal, 防止 Tomcat 线程复用时残留上一个用户的身份信息
+        UserHolder.clear();
         HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
     }
 }

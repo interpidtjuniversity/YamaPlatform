@@ -141,9 +141,13 @@ public class StudentController {
         String studentId = UserHolder.getValue().getStudentId();
         submitModel.setStudentId(studentId);
 
-        studentManager.submitExam(submitModel);
-        // 这里提交后立即产生几道反馈题目
-        return ResultModel.CommonResult(true);
+        // 透传提交结果, 失败时(考试已结束/已提交过)前端需要据此给出提示, 不能一律返回 true
+        boolean success = studentManager.submitExam(submitModel);
+        ResultModel<Boolean> result = ResultModel.CommonResult(success);
+        if (!success) {
+            result.message("提交失败: 考试已结束或已提交过");
+        }
+        return result;
     }
 
     /**

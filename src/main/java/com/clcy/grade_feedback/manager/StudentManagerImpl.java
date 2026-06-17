@@ -236,12 +236,12 @@ public class StudentManagerImpl implements StudentManager{
 
         // 上锁
         RLock lock = redisLockService.acquireLock(model.getStudentId(), model.getGroupId(), model.getExamName());
-        // 如果已经提交过
-        GroupExamStudentAnswerRecordModel record = queryAnswerRecord(model.getGroupId(), model.getExamName(), model.getStudentId());
-        if (null != record) {
-            return false;
-        }
         try {
+            // 如果已经提交过
+            GroupExamStudentAnswerRecordModel record = queryAnswerRecord(model.getGroupId(), model.getExamName(), model.getStudentId());
+            if (null != record) {
+                return false;
+            }
             Boolean success = examService.addStudentAnswerRecord(
                     GroupExamStudentAnswerRecordModel.builder()
                             .classId(model.getClassId())
@@ -268,6 +268,7 @@ public class StudentManagerImpl implements StudentManager{
                 return false;
             }
         } finally {
+            // 无论走哪个 return 分支(包括"已提交"提前返回), 锁都必须在这里释放
             redisLockService.releaseLock(lock);
         }
     }
