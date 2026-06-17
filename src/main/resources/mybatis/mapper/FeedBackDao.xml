@@ -63,4 +63,10 @@
         limit 1
     </update>
 
+    <delete id="deleteByStudentIdAndExam">
+        delete from grade_feedback.feedback_table
+        where studentId = #{feedBack.studentId}
+          and examName = #{feedBack.examName}
+    </delete>
+
 </mapper>

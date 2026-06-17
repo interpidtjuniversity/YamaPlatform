@@ -5,6 +5,7 @@ import com.clcy.grade_feedback.enumerate.LimitType;
 import com.clcy.grade_feedback.model.UserLoginModel;
 import com.clcy.grade_feedback.service.GuavaCacheService;
 import com.clcy.grade_feedback.service.LoginService;
+import com.clcy.grade_feedback.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +38,14 @@ public class LoginController {
         if (null == userLogin || null == userLogin.getStudentId() || null == userLogin.getPassword()) {
             return UserLoginModel.PLEASE_CHECK();
         }
-        return loginService.updatePassword(userLogin);
+        // 防越权: 只允许登录用户修改自己的密码, 不能凭借传入任意 studentId 改他人密码.
+        String currentUser = UserHolder.getValue().getStudentId();
+        if (!userLogin.getStudentId().equals(currentUser)) {
+            return UserLoginModel.builder().message("无权修改他人密码").code("403").build();
+        }
+        // 失效当前请求携带的 token（旧 token），而不是用新密码重新签发的 token.
+        String currentToken = request.getHeader("Authorization");
+        return loginService.updatePassword(userLogin, currentToken);
     }
 
     @ResponseBody

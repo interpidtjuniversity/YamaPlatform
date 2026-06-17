@@ -60,7 +60,12 @@ public class GroupExamAutoSubmitter {
                 String studentId = examState.getStudentId();
                 int groupId = examState.getGroupId();
                 String examName = examState.getExamName();
-                RLock lock = redisLockService.acquireLock(studentId, groupId, examName);
+                // 用有限重试取锁, 拿不到就跳过该学生, 避免某把锁被长期占用时阻塞整个调度线程,
+                // 导致后续所有学生的自动提交全部停滞(下一轮 5 分钟后会再扫描到, 不会漏).
+                RLock lock = redisLockService.tryAcquireLock(studentId, groupId, examName, 2);
+                if (null == lock) {
+                    return; // continue forEach
+                }
                 try{
                     List<SyncPuzzleModel> puzzleStates = examStateService.queryPuzzleRecords(studentId, groupId, examName);
                     Map<String, String> answers = Maps.newHashMap();
@@ -90,6 +95,10 @@ public class GroupExamAutoSubmitter {
                         examStateService.deleteExamState(studentId, groupId, examName);
                         examStateService.deletePuzzleState(studentId, groupId, examName);
                     }
+                } catch (Exception e) {
+                    // 单个学生的自动提交失败不应影响其他学生, 记录日志后继续处理下一个.
+                    // 状态未删除, 下一轮定时任务会重新尝试.
+                    e.printStackTrace();
                 } finally {
                     redisLockService.releaseLock(lock);
                 }

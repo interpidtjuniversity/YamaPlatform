@@ -41,13 +41,17 @@ public class LoginServiceImpl implements LoginService{
     }
 
     @Override
-    public boolean updatePassword(UserLoginModel loginModel) {
+    public boolean updatePassword(UserLoginModel loginModel, String currentToken) {
         UserLogin userLogin = UserLogin.builder()
                 .studentId(loginModel.getStudentId())
                 .password(loginModel.getPassword())
                 .build();
         userLoginDao.updatePassword(userLogin);
-        guavaCacheService.deleteToken(JwtUtil.getToken(loginModel));
+        // 失效"当前请求携带的旧 token", 而非用新密码重新签发的 token.
+        // 之前删的是 JwtUtil.getToken(loginModel)(新密码签发), 用户当前浏览器里的旧 token 仍有效, 改密等于没生效.
+        if (null != currentToken) {
+            guavaCacheService.deleteToken(currentToken);
+        }
 
         return true;
     }

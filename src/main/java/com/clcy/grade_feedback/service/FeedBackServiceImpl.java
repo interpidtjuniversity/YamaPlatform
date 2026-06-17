@@ -186,6 +186,16 @@ public class FeedBackServiceImpl implements FeedBackService{
     public boolean generateFeedBackPuzzle(int classId, String studentId, String studentName, String examName, Integer groupId, List<Integer> puzzlesIdx, GroupExamMetaModel metaModel) {
         // fix 这里直接设置为考试的截至时间就行，不然还要改前端，会很麻烦
 
+        // 幂等保护: 插入前先清除该学生该次考试的旧反馈记录(总反馈 + 题目级反馈),
+        // 避免重复交卷/自动提交与手动提交并发时产生重复记录, 进而导致
+        // feedbackPuzzleDao.queryByStudentId 返回多条同 puzzleIdx 记录,
+        // 在 FeedBackServiceImpl.queryExamNeedFeedBackPuzzles 的 toMap 处抛 IllegalStateException.
+        feedBackDao.deleteByStudentIdAndExam(FeedBack.builder()
+                .studentId(studentId)
+                .examName(examName)
+                .build());
+        feedBackPuzzleDao.deleteByStudentIdAndExam(studentId, groupId, examName);
+
         feedBackDao.insertOne(FeedBack.builder()
                 .studentId(studentId)
                 .studentName(studentName)

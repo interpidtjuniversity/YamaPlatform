@@ -105,4 +105,11 @@
         limit 1
     </update>
 
+    <delete id="deleteByStudentIdAndExam">
+        delete from grade_feedback.feedback_puzzle_table
+        where studentId = #{studentId}
+          and groupId = #{groupId}
+          and examName = #{examName}
+    </delete>
+
 </mapper>

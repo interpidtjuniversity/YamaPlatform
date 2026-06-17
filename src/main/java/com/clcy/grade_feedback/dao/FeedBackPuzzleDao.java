@@ -19,4 +19,10 @@ public interface FeedBackPuzzleDao {
 
     // 直接将未反馈改未已反馈
     boolean feedBackPuzzle(@Param("feedBackPuzzle") FeedBackPuzzle feedBackPuzzle);
+
+    /**
+     * 删除某个学生某次考试的全部反馈题目记录, 用于生成反馈前保证幂等,
+     * 避免重复交卷/重试时产生重复记录.
+     */
+    int deleteByStudentIdAndExam(@Param("studentId") String studentId, @Param("groupId") int groupId, @Param("examName") String examName);
 }

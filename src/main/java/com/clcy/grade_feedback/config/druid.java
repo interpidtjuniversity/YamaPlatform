@@ -37,7 +37,7 @@ public class druid {
         druidDataSource.setMinIdle(druidDataSourceProperties.getMinIdle());
         druidDataSource.setMaxActive(druidDataSourceProperties.getMaxActive());
         druidDataSource.setMaxWait(druidDataSourceProperties.getMaxWait());
-        druidDataSourceProperties.setPoolPreparedStatements(druidDataSourceProperties.isPoolPreparedStatements());
+        druidDataSource.setPoolPreparedStatements(druidDataSourceProperties.isPoolPreparedStatements());
         return druidDataSource;
     }
 

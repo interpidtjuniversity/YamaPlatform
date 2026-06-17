@@ -21,7 +21,7 @@
     <!--查询单个-->
     <select id="queryGroupExamDetailByIdAndName" resultMap="GroupExamDetailMap">
         select
-            puzzle_idx, content, choices, images
+            group_id, group_name, exam_name, puzzle_idx, content, choices, images
              <if test="containsAnswer">
              , answer
              </if>
