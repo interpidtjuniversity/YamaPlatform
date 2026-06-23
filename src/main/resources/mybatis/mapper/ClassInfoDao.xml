@@ -24,4 +24,12 @@
         limit 100
     </select>
 
+    <select id="queryClassByIdAndOwner" resultMap="ClassInfoMap">
+        select
+            *
+        from grade_feedback.class_info
+        where id = #{classId} and owner_number = #{ownerNumber}
+        limit 1
+    </select>
+
 </mapper>

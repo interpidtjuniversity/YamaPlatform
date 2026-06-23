@@ -4,14 +4,19 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.auth.CredentialsProviderFactory;
 import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
+import com.aliyun.oss.model.ListObjectsRequest;
+import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.OSSObjectSummary;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class ALiYunOssServiceImpl implements ALiYunOssService, InitializingBean {
@@ -84,6 +89,28 @@ public class ALiYunOssServiceImpl implements ALiYunOssService, InitializingBean 
             return url.toString();
         }
         return null;
+    }
+
+    @Override
+    public List<String> listAudioKeysByPrefix(String prefix) {
+        List<String> keys = new ArrayList<>();
+        // OSS 单次 listObjects 最多返回 1000 条, 需通过 marker 翻页累积, 直到没有下一页.
+        String marker = null;
+        ObjectListing listing;
+        do {
+            ListObjectsRequest request = new ListObjectsRequest(audioBucketName);
+            request.setPrefix(prefix);
+            request.setMaxKeys(1000);
+            if (null != marker) {
+                request.setMarker(marker);
+            }
+            listing = audioOssClient.listObjects(request);
+            for (OSSObjectSummary summary : listing.getObjectSummaries()) {
+                keys.add(summary.getKey());
+            }
+            marker = listing.getNextMarker();
+        } while (listing.isTruncated() && null != marker);
+        return keys;
     }
 
 
