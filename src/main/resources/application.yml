@@ -31,4 +31,9 @@ postgres:
     password: cy19991116
     driverClassName: org.postgresql.Driver
 
+# DeepSeek LLM 配置(用于梯径节点过滤)
+deepseek:
+  api-key: sk-bc26d16b46cf4338ac5f2cb9f5e51353
+  base-url: https://api.deepseek.com
+  model: deepseek-v4-pro
 

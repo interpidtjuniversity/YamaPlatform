@@ -169,6 +169,30 @@ public class AudioTranscriptsDao {
     }
 
     /**
+     * 查询某学生在多场考试中的全部转录文本拼接(按 exam_name, puzzle_idx 升序).
+     * 用于梯径提取: 拼接 examName 之前(含)所有考试的转录文本.
+     *
+     * @param studentId 学号
+     * @param examNames 考试名列表
+     * @return 拼接后的文本; 无记录时返回空串(非 null)
+     */
+    public String queryConcatTranscriptByExams(int studentId, List<String> examNames) {
+        if (null == examNames || examNames.isEmpty()) {
+            return "";
+        }
+        // 构建 IN 占位符: ?, ?, ...
+        String placeholders = String.join(",", java.util.Collections.nCopies(examNames.size(), "?"));
+        String sql = "select coalesce(string_agg(transcript_text, '' order by exam_name, puzzle_idx), '') "
+                + "from audio_transcripts where student_id = ? and exam_name in (" + placeholders + ")";
+        Object[] params = new Object[examNames.size() + 1];
+        params[0] = studentId;
+        for (int i = 0; i < examNames.size(); i++) {
+            params[i + 1] = examNames.get(i);
+        }
+        return jdbcTemplate.queryForObject(sql, String.class, params);
+    }
+
+    /**
      * 按 (student_id, exam_name, puzzle_idx) 查询单条.
      */
     public AudioTranscript queryByStudentExamPuzzle(int studentId, String examName, int puzzleIdx) {

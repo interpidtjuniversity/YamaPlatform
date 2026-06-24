@@ -5,6 +5,7 @@ import com.clcy.grade_feedback.dao.GroupExamMetaDao;
 import com.clcy.grade_feedback.entity.ClassInfo;
 import com.clcy.grade_feedback.entity.GroupExamMeta;
 import com.clcy.grade_feedback.model.v2.*;
+import com.clcy.grade_feedback.model.v4.StudentAudioDetailModel;
 import com.clcy.grade_feedback.service.ALiYunOssService;
 import com.clcy.grade_feedback.service.v2.ClassService;
 import com.clcy.grade_feedback.service.v2.GroupService;
@@ -196,6 +197,34 @@ public class TeacherManagerImpl implements TeacherManager{
                     .build());
         }
         result.sort((a, b) -> b.getStartTime().compareTo(a.getStartTime()));
+        return result;
+    }
+
+    @Override
+    public List<StudentAudioDetailModel> queryExamAudioDetail(int classId, String examName, String ownerNumber) {
+        // 0.权限校验
+        ClassInfo classInfo = classInfoDao.queryClassByIdAndOwner(classId, ownerNumber);
+        if (null == classInfo) {
+            return null;
+        }
+        // 1.查班级所有学生(studentId -> studentName)
+        StudentClassInfoModel classStudents = classService.queryClassStudents(classId);
+        if (null == classStudents || null == classStudents.getStudents()) {
+            return Collections.emptyList();
+        }
+        // 2.遍历学生, 按 studentId_examName_ 前缀列举 OSS 音频文件计数
+        List<StudentAudioDetailModel> result = new ArrayList<>();
+        classStudents.getStudents().forEach((studentId, studentName) -> {
+            if (null == studentId || studentId.isEmpty()) {
+                return;
+            }
+            List<String> keys = aLiYunOssService.listAudioKeysByPrefix(AUDIO_DIR + studentId + "_" + examName + "_");
+            result.add(StudentAudioDetailModel.builder()
+                    .studentName(studentName)
+                    .studentId(studentId)
+                    .audioCount(keys.size())
+                    .build());
+        });
         return result;
     }
 
