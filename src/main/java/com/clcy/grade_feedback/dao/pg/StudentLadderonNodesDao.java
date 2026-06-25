@@ -62,36 +62,18 @@ public class StudentLadderonNodesDao {
      * 查询某学生在多场考试中的全部 node_text(去重).
      * 用于超边提取: 收集 examName 之前(含)所有考试的节点作为候选输入.
      */
-    public List<String> queryDistinctNodeTextsByStudentAndExams(int studentId, List<String> examNames) {
+    public List<String> queryDistinctNodeTextsByStudentAndExams(int classId, int studentId, List<String> examNames) {
         if (null == examNames || examNames.isEmpty()) {
             return Collections.emptyList();
         }
         String placeholders = String.join(",", Collections.nCopies(examNames.size(), "?"));
         String sql = "select distinct node_text from student_ladderon_nodes "
-                + "where student_id = ? and exam_name in (" + placeholders + ")";
-        Object[] params = new Object[examNames.size() + 1];
-        params[0] = studentId;
+                + "where class_id = ? and student_id = ? and exam_name in (" + placeholders + ")";
+        Object[] params = new Object[examNames.size() + 2];
+        params[0] = classId;
+        params[1] = studentId;
         for (int i = 0; i < examNames.size(); i++) {
-            params[i + 1] = examNames.get(i);
-        }
-        return jdbcTemplate.queryForList(sql, String.class, params);
-    }
-
-    /**
-     * 查询某学生在多场考试中的全部 node_text(去重).
-     * 用于超边提取: 拿到 examName 之前(含)所有考试的节点列表.
-     */
-    public List<String> queryNodeTextsByStudentAndExams(int studentId, List<String> examNames) {
-        if (null == examNames || examNames.isEmpty()) {
-            return Collections.emptyList();
-        }
-        String placeholders = String.join(",", Collections.nCopies(examNames.size(), "?"));
-        String sql = "select distinct node_text from student_ladderon_nodes "
-                + "where student_id = ? and exam_name in (" + placeholders + ")";
-        Object[] params = new Object[examNames.size() + 1];
-        params[0] = studentId;
-        for (int i = 0; i < examNames.size(); i++) {
-            params[i + 1] = examNames.get(i);
+            params[i + 2] = examNames.get(i);
         }
         return jdbcTemplate.queryForList(sql, String.class, params);
     }

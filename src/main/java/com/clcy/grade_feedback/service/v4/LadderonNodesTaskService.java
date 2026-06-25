@@ -147,7 +147,7 @@ public class LadderonNodesTaskService {
     private static final int LLM_BATCH_SIZE = 10;
 
     /** 自管理线程池 */
-    private final ExecutorService executor = Executors.newFixedThreadPool(2, r -> {
+    private final ExecutorService executor = Executors.newFixedThreadPool(4, r -> {
         Thread t = new Thread(r, "ladderon-nodes-worker");
         t.setDaemon(true);
         return t;

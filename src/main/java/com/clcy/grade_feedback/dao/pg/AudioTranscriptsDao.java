@@ -152,10 +152,10 @@ public class AudioTranscriptsDao {
     /**
      * 按 (student_id, exam_name) 查询全部转录记录(走联合索引).
      */
-    public List<AudioTranscript> queryByStudentAndExam(int studentId, String examName) {
+    public List<AudioTranscript> queryByStudentAndExam(int classId, int studentId, String examName) {
         String sql = "select id, class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, timestamp "
-                + "from audio_transcripts where student_id = ? and exam_name = ? order by puzzle_idx";
-        return jdbcTemplate.query(sql, ROW_MAPPER, studentId, examName);
+                + "from audio_transcripts where class_id = ? and student_id = ? and exam_name = ? order by puzzle_idx";
+        return jdbcTemplate.query(sql, ROW_MAPPER, classId, studentId, examName);
     }
 
     /**

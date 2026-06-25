@@ -40,7 +40,7 @@ public class StudentExamHyperEdgesTaskDao {
     public int startOrRestartTask(int classId, int studentId, String examName) {
         String sql = "insert into student_exam_hyper_edges_task (class_id, student_id, exam_name, status, total_count, done_count, started_at) "
                 + "values (?, ?, ?, 'RUNNING', 0, 0, NOW()) "
-                + "on conflict (student_id, exam_name) do update "
+                + "on conflict (class_id, student_id, exam_name) do update "
                 + "set status = 'RUNNING', total_count = 0, done_count = 0, started_at = NOW(), "
                 + "    finished_at = NULL, error_message = NULL "
                 + "where student_exam_hyper_edges_task.status <> 'RUNNING' "
@@ -48,28 +48,28 @@ public class StudentExamHyperEdgesTaskDao {
         return jdbcTemplate.update(sql, classId, studentId, examName);
     }
 
-    public int updateCounts(int studentId, String examName, int totalCount, int doneCount) {
+    public int updateCounts(int classId, int studentId, String examName, int totalCount, int doneCount) {
         String sql = "update student_exam_hyper_edges_task set total_count = ?, done_count = ? "
-                + "where student_id = ? and exam_name = ?";
-        return jdbcTemplate.update(sql, totalCount, doneCount, studentId, examName);
+                + "where class_id = ? and student_id = ? and exam_name = ?";
+        return jdbcTemplate.update(sql, totalCount, doneCount, classId, studentId, examName);
     }
 
-    public int markDone(int studentId, String examName) {
+    public int markDone(int classId, int studentId, String examName) {
         String sql = "update student_exam_hyper_edges_task set status = 'DONE', finished_at = NOW() "
-                + "where student_id = ? and exam_name = ?";
-        return jdbcTemplate.update(sql, studentId, examName);
+                + "where class_id = ? and student_id = ? and exam_name = ?";
+        return jdbcTemplate.update(sql, classId, studentId, examName);
     }
 
-    public int markFailed(int studentId, String examName, String errorMessage) {
+    public int markFailed(int classId, int studentId, String examName, String errorMessage) {
         String sql = "update student_exam_hyper_edges_task set status = 'FAILED', finished_at = NOW(), error_message = ? "
-                + "where student_id = ? and exam_name = ?";
-        return jdbcTemplate.update(sql, errorMessage, studentId, examName);
+                + "where class_id = ? and student_id = ? and exam_name = ?";
+        return jdbcTemplate.update(sql, errorMessage, classId, studentId, examName);
     }
 
-    public StudentExamHyperEdgesTask queryByStudentAndExam(int studentId, String examName) {
+    public StudentExamHyperEdgesTask queryByStudentAndExam(int classId, int studentId, String examName) {
         String sql = "select id, class_id, student_id, exam_name, status, total_count, done_count, started_at, finished_at, error_message "
-                + "from student_exam_hyper_edges_task where student_id = ? and exam_name = ?";
-        List<StudentExamHyperEdgesTask> list = jdbcTemplate.query(sql, ROW_MAPPER, studentId, examName);
+                + "from student_exam_hyper_edges_task where class_id = ? and student_id = ? and exam_name = ?";
+        List<StudentExamHyperEdgesTask> list = jdbcTemplate.query(sql, ROW_MAPPER, classId, studentId, examName);
         return list.isEmpty() ? null : list.get(0);
     }
 }

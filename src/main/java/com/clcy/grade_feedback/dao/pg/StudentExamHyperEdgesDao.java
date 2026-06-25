@@ -58,19 +58,19 @@ public class StudentExamHyperEdgesDao {
     }
 
     /**
-     * 按 (student_id, exam_name) 查询全部超边.
+     * 按 (class_id, student_id, exam_name) 查询全部超边.
      */
-    public List<StudentExamHyperEdge> queryByStudentAndExam(int studentId, String examName) {
+    public List<StudentExamHyperEdge> queryByStudentAndExam(int classId, int studentId, String examName) {
         String sql = "select id, class_id, student_id, group_id, exam_name, inputs, outputs, type, confidence, puzzle_index, timestamp "
-                + "from student_exam_hyper_edges where student_id = ? and exam_name = ? order by puzzle_index";
-        return jdbcTemplate.query(sql, ROW_MAPPER, studentId, examName);
+                + "from student_exam_hyper_edges where class_id = ? and student_id = ? and exam_name = ? order by puzzle_index";
+        return jdbcTemplate.query(sql, ROW_MAPPER, classId, studentId, examName);
     }
 
     /**
-     * 按 (student_id, exam_name) 删除, 用于重试时清空旧超边.
+     * 按 (class_id, student_id, exam_name) 删除, 用于重试时清空旧超边.
      */
-    public int deleteByStudentAndExam(int studentId, String examName) {
-        String sql = "delete from student_exam_hyper_edges where student_id = ? and exam_name = ?";
-        return jdbcTemplate.update(sql, studentId, examName);
+    public int deleteByStudentAndExam(int classId, int studentId, String examName) {
+        String sql = "delete from student_exam_hyper_edges where class_id = ? and student_id = ? and exam_name = ?";
+        return jdbcTemplate.update(sql, classId, studentId, examName);
     }
 }
