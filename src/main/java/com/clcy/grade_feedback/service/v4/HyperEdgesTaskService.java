@@ -16,6 +16,7 @@ import com.clcy.grade_feedback.model.v2.GroupClassInfoModel;
 import com.clcy.grade_feedback.model.v2.GroupInstanceModel;
 import com.clcy.grade_feedback.model.v4.HyperEdgeModel;
 import com.clcy.grade_feedback.model.v4.HyperEdgesTaskStatusModel;
+import com.clcy.grade_feedback.model.v4.HyperEdgeViewModel;
 import com.clcy.grade_feedback.service.v2.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -288,6 +289,34 @@ public class HyperEdgesTaskService {
         }
         StudentExamHyperEdgesTask task = studentExamHyperEdgesTaskDao.queryByStudentAndExam(classId, studentIdInt, examName);
         return toStatusModel(task, null);
+    }
+
+    /**
+     * 查询某学生某次考试的所有超边(推理结构).
+     * @return 超边列表; 无权限返回 null
+     */
+    public List<HyperEdgeViewModel> queryHyperEdges(int classId, String examName, String studentId, String ownerNumber) {
+        if (null == classInfoDao.queryClassByIdAndOwner(classId, ownerNumber)) {
+            return null;
+        }
+        int studentIdInt;
+        try {
+            studentIdInt = Integer.parseInt(studentId);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+        List<StudentExamHyperEdge> edges = studentExamHyperEdgesDao.queryByStudentAndExam(classId, studentIdInt, examName);
+        return edges.stream().map(e -> HyperEdgeViewModel.builder()
+                .id(e.getId())
+                .inputs(JSON.parseArray(e.getInputs(), String.class))
+                .outputs(JSON.parseArray(e.getOutputs(), String.class))
+                .type(e.getType())
+                .confidence(e.getConfidence())
+                .examName(e.getExamName())
+                .puzzleIndex(e.getPuzzleIndex())
+                .timestamp(e.getTimestamp())
+                .build()
+        ).collect(Collectors.toList());
     }
 
     /**

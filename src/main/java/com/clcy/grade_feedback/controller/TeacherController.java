@@ -6,6 +6,7 @@ import com.clcy.grade_feedback.model.v2.ClassExamStatModel;
 import com.clcy.grade_feedback.model.v2.OwnerClassModel;
 import com.clcy.grade_feedback.model.v4.AudioTranscriptTaskStatusModel;
 import com.clcy.grade_feedback.model.v4.HyperEdgesTaskStatusModel;
+import com.clcy.grade_feedback.model.v4.HyperEdgeViewModel;
 import com.clcy.grade_feedback.model.v4.LadderonNodesTaskStatusModel;
 import com.clcy.grade_feedback.model.v4.StudentAudioDetailModel;
 import com.clcy.grade_feedback.service.v4.AudioTranscriptTaskService;
@@ -185,5 +186,25 @@ public class TeacherController {
             return ResultModel.CommonResult(status).success(Boolean.FALSE).message("无权访问该班级或班级不存在");
         }
         return ResultModel.CommonResult(status);
+    }
+
+    /**
+     * 查询某学生某次考试的所有超边(推理结构).
+     */
+    @ResponseBody
+    @RequestMapping("/student_exam_hyper_edges")
+    public ResultModel<List<HyperEdgeViewModel>> studentExamHyperEdges(HttpServletRequest request, HttpServletResponse response,
+                                                                         @RequestParam("classId") int classId,
+                                                                         @RequestParam("examName") String examName,
+                                                                         @RequestParam("studentId") String studentId) {
+        List<HyperEdgeViewModel> result = hyperEdgesTaskService.queryHyperEdges(
+                classId, examName, studentId, UserHolder.getValue().getStudentId());
+        if (null == result) {
+            ResultModel<List<HyperEdgeViewModel>> fail = new ResultModel<>();
+            fail.setSuccess(false);
+            fail.setMessage("无权访问该班级或班级不存在");
+            return fail;
+        }
+        return ResultModel.CommonResult(result);
     }
 }

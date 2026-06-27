@@ -46,6 +46,9 @@ public class TeacherManagerImpl implements TeacherManager{
     @Autowired
     private AudioTranscriptTaskService audioTranscriptTaskService;
 
+    @Autowired
+    private com.clcy.grade_feedback.dao.pg.StudentExamHyperEdgesTaskDao studentExamHyperEdgesTaskDao;
+
     // 音频文件在 OSS 上的目录前缀, 与 ALiYunOssServiceImpl.audioDir 保持一致
     private static final String AUDIO_DIR = "feed_back/";
 
@@ -212,17 +215,33 @@ public class TeacherManagerImpl implements TeacherManager{
         if (null == classStudents || null == classStudents.getStudents()) {
             return Collections.emptyList();
         }
-        // 2.遍历学生, 按 studentId_examName_ 前缀列举 OSS 音频文件计数
+        // 2.遍历学生, 按 studentId_examName_ 前缀列举 OSS 音频文件计数, 并查超边任务状态
         List<StudentAudioDetailModel> result = new ArrayList<>();
         classStudents.getStudents().forEach((studentId, studentName) -> {
             if (null == studentId || studentId.isEmpty()) {
                 return;
             }
+            // oss的前缀设计的有点问题，应该在前缀中加入classId的。
+            // 因为这里是要展示学生提交的文件数，不管有没有识别完毕都应该直接从oss计数而不是从数据库计数
             List<String> keys = aLiYunOssService.listAudioKeysByPrefix(AUDIO_DIR + studentId + "_" + examName + "_");
+            // 查该学生该考试的超边提取任务状态(查询带 classId 确保数据隔离)
+            String status = "NONE";
+            try {
+                int studentIdInt = Integer.parseInt(studentId);
+                com.clcy.grade_feedback.entity.StudentExamHyperEdgesTask hyperTask =
+                        studentExamHyperEdgesTaskDao.queryByStudentAndExam(classId, studentIdInt, examName);
+                if (null != hyperTask) {
+                    status = hyperTask.getStatus();
+                }
+            } catch (NumberFormatException e) {
+                // 学号非数字, status 保持 NONE
+            }
             result.add(StudentAudioDetailModel.builder()
+                    .classId(classId)
                     .studentName(studentName)
                     .studentId(studentId)
                     .audioCount(keys.size())
+                    .status(status)
                     .build());
         });
         return result;

@@ -29,7 +29,7 @@ public class StudentExamHyperEdgesDao {
             .outputs(rs.getString("outputs"))
             .type(rs.getString("type"))
             .confidence(rs.getDouble("confidence"))
-            .puzzleIndex(rs.getInt("puzzle_index"))
+            .puzzleIndex(rs.getInt("puzzle_idx"))
             .timestamp(rs.getTimestamp("timestamp"))
             .build();
 
@@ -41,7 +41,7 @@ public class StudentExamHyperEdgesDao {
             return;
         }
         String sql = "insert into student_exam_hyper_edges "
-                + "(class_id, student_id, group_id, exam_name, inputs, outputs, type, confidence, puzzle_index, timestamp) "
+                + "(class_id, student_id, group_id, exam_name, inputs, outputs, type, confidence, puzzle_idx, timestamp) "
                 + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.batchUpdate(sql, edges, edges.size(), (ps, edge) -> {
             ps.setInt(1, edge.getClassId());
@@ -61,8 +61,8 @@ public class StudentExamHyperEdgesDao {
      * 按 (class_id, student_id, exam_name) 查询全部超边.
      */
     public List<StudentExamHyperEdge> queryByStudentAndExam(int classId, int studentId, String examName) {
-        String sql = "select id, class_id, student_id, group_id, exam_name, inputs, outputs, type, confidence, puzzle_index, timestamp "
-                + "from student_exam_hyper_edges where class_id = ? and student_id = ? and exam_name = ? order by puzzle_index";
+        String sql = "select id, class_id, student_id, group_id, exam_name, inputs, outputs, type, confidence, puzzle_idx, timestamp "
+                + "from student_exam_hyper_edges where class_id = ? and student_id = ? and exam_name = ? order by puzzle_idx";
         return jdbcTemplate.query(sql, ROW_MAPPER, classId, studentId, examName);
     }
 

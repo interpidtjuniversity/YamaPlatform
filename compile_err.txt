@@ -1,0 +1,23 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.clcy:grade_feedback >-----------------------
+[INFO] Building grade_feedback 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] 2 problems were encountered while building the effective model for com.alibaba:druid:jar:1.1.8 during dependency collection step for project (use -X to see details)
+[INFO] 
+[INFO] --- resources:3.2.0:resources (default-resources) @ grade_feedback ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] Copying 1 resource
+[INFO] Copying 12 resources
+[INFO] 
+[INFO] --- compiler:3.8.1:compile (default-compile) @ grade_feedback ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 107 source files to D:\clcy\javaplayground\YamaPlatform\target\classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  15.855 s
+[INFO] Finished at: 2026-06-27T13:21:33+08:00
+[INFO] ------------------------------------------------------------------------
