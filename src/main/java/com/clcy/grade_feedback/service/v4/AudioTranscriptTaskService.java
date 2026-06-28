@@ -30,4 +30,16 @@ public interface AudioTranscriptTaskService {
      * 查询任务状态(不校验权限). 专供已做过权限校验的内部聚合调用, 如 queryClassExams 批量填充状态.
      */
     AudioTranscriptTaskStatusModel queryStatusNoAuth(int classId, String examName);
+
+    /**
+     * 增量同步转录: 找出该班级所有学生在 OSS 上存在但尚未入库 audio_transcripts 的音频(新增/补充上传的文件),
+     * 重新启动任务并只转录这部分增量文件, 落库时同样写入 audio_url 与 tag. 不删除已有转录记录.
+     * 若该 (classId, examName) 已有 RUNNING 任务则拒绝, 返回当前状态; 否则后台异步执行, 立即返回 RUNNING.
+     *
+     * @param classId  班级 id
+     * @param examName 考试名
+     * @param ownerNumber 当前登录用户(用于权限校验)
+     * @return 任务状态; 无权限返回 null
+     */
+    AudioTranscriptTaskStatusModel syncRecognizeAudio(int classId, String examName, String ownerNumber);
 }

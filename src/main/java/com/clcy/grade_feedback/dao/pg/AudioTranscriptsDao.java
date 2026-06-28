@@ -12,7 +12,9 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * audio_transcripts 表的增删改查(PostgreSQL, JdbcTemplate 实现).
@@ -33,6 +35,8 @@ public class AudioTranscriptsDao {
             .examName(rs.getString("exam_name"))
             .puzzleIdx(rs.getInt("puzzle_idx"))
             .transcriptText(rs.getString("transcript_text"))
+            .audioUrl(rs.getString("audio_url"))
+            .tag(rs.getString("tag"))
             .timestamp(rs.getTimestamp("timestamp"))
             .build();
 
@@ -42,8 +46,8 @@ public class AudioTranscriptsDao {
      * 插入一条转录记录, 返回自增主键 id; 失败返回 null.
      */
     public Integer insert(AudioTranscript record) {
-        String sql = "insert into audio_transcripts (class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text) "
-                + "values (?, ?, ?, ?, ?, ?)";
+        String sql = "insert into audio_transcripts (class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, audio_url, tag) "
+                + "values (?, ?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         int affected = jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
@@ -53,6 +57,8 @@ public class AudioTranscriptsDao {
             ps.setString(4, record.getExamName());
             ps.setInt(5, record.getPuzzleIdx());
             ps.setString(6, record.getTranscriptText());
+            ps.setString(7, record.getAudioUrl());
+            ps.setString(8, record.getTag());
             return ps;
         }, keyHolder);
         if (affected == 0) {
@@ -143,7 +149,7 @@ public class AudioTranscriptsDao {
      * 按主键查询单条.
      */
     public AudioTranscript queryById(int id) {
-        String sql = "select id, class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, timestamp "
+        String sql = "select id, class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, audio_url, tag, timestamp "
                 + "from audio_transcripts where id = ?";
         List<AudioTranscript> list = jdbcTemplate.query(sql, ROW_MAPPER, id);
         return list.isEmpty() ? null : list.get(0);
@@ -153,7 +159,7 @@ public class AudioTranscriptsDao {
      * 按 (student_id, exam_name) 查询全部转录记录(走联合索引).
      */
     public List<AudioTranscript> queryByStudentAndExam(int classId, int studentId, String examName) {
-        String sql = "select id, class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, timestamp "
+        String sql = "select id, class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, audio_url, tag, timestamp "
                 + "from audio_transcripts where class_id = ? and student_id = ? and exam_name = ? order by puzzle_idx";
         return jdbcTemplate.query(sql, ROW_MAPPER, classId, studentId, examName);
     }
@@ -196,9 +202,19 @@ public class AudioTranscriptsDao {
      * 按 (student_id, exam_name, puzzle_idx) 查询单条.
      */
     public AudioTranscript queryByStudentExamPuzzle(int studentId, String examName, int puzzleIdx) {
-        String sql = "select id, class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, timestamp "
+        String sql = "select id, class_id, student_id, group_id, exam_name, puzzle_idx, transcript_text, audio_url, tag, timestamp "
                 + "from audio_transcripts where student_id = ? and exam_name = ? and puzzle_idx = ?";
         List<AudioTranscript> list = jdbcTemplate.query(sql, ROW_MAPPER, studentId, examName, puzzleIdx);
         return list.isEmpty() ? null : list.get(0);
+    }
+
+    /**
+     * 查询某班级某次考试已入库的全部 audio_url(完整 OSS key), 用于增量同步时排除已转录的文件.
+     * 仅收集非空 audio_url, 历史无该列值的旧记录不参与排除(会被当作增量重转, 符合预期).
+     */
+    public Set<String> queryAudioUrlsByClassAndExam(int classId, String examName) {
+        String sql = "select audio_url from audio_transcripts where class_id = ? and exam_name = ? and audio_url is not null";
+        List<String> urls = jdbcTemplate.queryForList(sql, String.class, classId, examName);
+        return new HashSet<>(urls);
     }
 }

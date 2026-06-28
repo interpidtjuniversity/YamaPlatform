@@ -90,6 +90,23 @@ public class TeacherController {
     }
 
     /**
+     * 增量同步识别: 找出该班级所有学生在 OSS 上存在但尚未入库 audio_transcripts 的音频(新增/补充上传的文件),
+     * 重新启动任务并只转录这部分增量文件, 不删除已有转录记录. 适合学生事后补传音频的场景.
+     */
+    @ResponseBody
+    @RequestMapping("/sync_recognize_audio")
+    public ResultModel<AudioTranscriptTaskStatusModel> syncRecognizeAudio(HttpServletRequest request, HttpServletResponse response,
+                                                                          @RequestParam("classId") int classId,
+                                                                          @RequestParam("examName") String examName) {
+        AudioTranscriptTaskStatusModel status = audioTranscriptTaskService.syncRecognizeAudio(
+                classId, examName, UserHolder.getValue().getStudentId());
+        if (null == status) {
+            return ResultModel.CommonResult(status).success(Boolean.FALSE).message("无权访问该班级或班级不存在");
+        }
+        return ResultModel.CommonResult(status);
+    }
+
+    /**
      * 查询音频转录任务状态(供前端轮询, 展示进度与按钮).
      */
     @ResponseBody

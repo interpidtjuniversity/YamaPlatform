@@ -1,13 +1,14 @@
 package com.clcy.grade_feedback.service.v4;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.clcy.grade_feedback.dao.ClassInfoDao;
+import com.clcy.grade_feedback.dao.FeedBackPuzzleDao;
 import com.clcy.grade_feedback.dao.pg.AudioTranscriptTaskDao;
 import com.clcy.grade_feedback.dao.pg.AudioTranscriptsDao;
 import com.clcy.grade_feedback.entity.AudioTranscript;
 import com.clcy.grade_feedback.entity.AudioTranscriptTask;
 import com.clcy.grade_feedback.entity.ClassInfo;
+import com.clcy.grade_feedback.entity.FeedBackPuzzle;
 import com.clcy.grade_feedback.model.v2.GroupInstanceModel;
 import com.clcy.grade_feedback.model.v4.AudioTranscriptTaskStatusModel;
 import com.clcy.grade_feedback.model.v4.FailedFileInfo;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -60,6 +62,9 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
 
     @Autowired
     private AudioTranscriptTaskDao audioTranscriptTaskDao;
+
+    @Autowired
+    private FeedBackPuzzleDao feedBackPuzzleDao;
 
     private static final String AUDIO_DIR = "feed_back/";
 
@@ -105,6 +110,24 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
     }
 
     @Override
+    public AudioTranscriptTaskStatusModel syncRecognizeAudio(int classId, String examName, String ownerNumber) {
+        // 0.权限校验
+        if (!hasPermission(classId, ownerNumber)) {
+            return null;
+        }
+        // 1.原子防重: 启动或重启任务(与全量转录共用任务行, 已有 RUNNING 则拒绝)
+        int affected = audioTranscriptTaskDao.startOrRestartTask(classId, examName);
+        if (affected == 0) {
+            AudioTranscriptTask task = audioTranscriptTaskDao.queryByClassAndExam(classId, examName);
+            return toStatusModel(task);
+        }
+        // 2.异步执行增量识别流程, 立即返回 RUNNING 给前端转圈
+        executor.submit(() -> runSyncTranscript(classId, examName));
+        AudioTranscriptTask task = audioTranscriptTaskDao.queryByClassAndExam(classId, examName);
+        return toStatusModel(task);
+    }
+
+    @Override
     public AudioTranscriptTaskStatusModel queryStatus(int classId, String examName, String ownerNumber) {
         if (!hasPermission(classId, ownerNumber)) {
             return null;
@@ -128,11 +151,9 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
             //    fileMetas: 待提交识别的文件信息(studentId, groupId, puzzleIdx, fileName)
             List<FileMeta> fileMetas;
             if (!previousFails.isEmpty()) {
-                // 重试模式: 只跑上次失败的文件
+                // 重试模式: 只跑上次失败的文件, 同时回填 audio_url/tag
                 log.info("重试模式 classId={} examName={}, 只跑失败文件 {} 个", classId, examName, previousFails.size());
-                fileMetas = previousFails.stream()
-                        .map(f -> new FileMeta(f.getStudentId(), f.getGroupId(), examName, f.getPuzzleIdx(), f.getFileName()))
-                        .collect(Collectors.toList());
+                fileMetas = rebuildMetasFromFails(previousFails, examName);
             } else {
                 // 首次模式: 收集全部学生的音频文件，删除已经存在的识别结果
                 audioTranscriptsDao.deleteByClassAndExam(classId, examName);
@@ -215,6 +236,101 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
     }
 
     /**
+     * 增量同步识别: 收集该班级某次考试的全部音频, 过滤掉已入库 audio_url 的文件, 只转录增量部分.
+     * 与 runTranscript 的区别: 不删除已有转录记录; total_count 只统计增量文件数.
+     */
+    private void runSyncTranscript(int classId, String examName) {
+        try {
+            // 1.收集全部学生的音频文件(已带 audioUrl 与 tag)
+            List<FileMeta> allMetas = collectAllFiles(classId, examName);
+            // 2.查已入库的 audio_url 集合, 过滤出增量文件
+            Set<String> existingUrls = audioTranscriptsDao.queryAudioUrlsByClassAndExam(classId, examName);
+            List<FileMeta> fileMetas = new ArrayList<>();
+            for (FileMeta meta : allMetas) {
+                if (!existingUrls.contains(meta.audioUrl)) {
+                    fileMetas.add(meta);
+                }
+            }
+            log.info("增量同步 classId={} examName={}, 全部 {} 个, 已入库 {} 个, 增量 {} 个",
+                    classId, examName, allMetas.size(), existingUrls.size(), fileMetas.size());
+
+            // 3.为每个增量文件提交 NLS 识别任务
+            List<PendingTask> pending = new ArrayList<>();
+            List<FailedFileInfo> currentFails = new ArrayList<>();
+            for (FileMeta meta : fileMetas) {
+                String url = aLiYunOssService.gerAudioUrl(meta.fileName);
+                String taskId = aliyunTranscriptsService.submitTask(url);
+                if (null == taskId) {
+                    log.warn("提交识别任务失败: {}", meta.fileName);
+                    currentFails.add(toFailedFileInfo(meta));
+                    continue;
+                }
+                pending.add(new PendingTask(meta, taskId));
+            }
+
+            // total/doneCount 在已有基础上累加:
+            //   total = 已入库数 + 本轮成功提交的增量数
+            //   doneCount 从已入库数起步, 随增量文件完成递增到 total
+            int baseDone = existingUrls.size();
+            int total = baseDone + pending.size();
+            int doneCount = baseDone;
+            audioTranscriptTaskDao.updateCounts(classId, examName, total, doneCount);
+            if (pending.isEmpty()) {
+                // 无可轮询任务(无增量或全部提交失败)则立即结束
+                if (currentFails.isEmpty()) {
+                    audioTranscriptTaskDao.markDone(classId, examName);
+                } else {
+                    audioTranscriptTaskDao.markFailed(classId, examName,
+                            "全部增量文件提交失败: " + currentFails.size(), JSON.toJSONString(currentFails));
+                }
+                return;
+            }
+
+            // 4.轮转轮询, 让所有任务在阿里云侧并行执行(doneCount 已从 baseDone 起步)
+            long deadline = System.currentTimeMillis() + MAX_WAIT_MS;
+            while (!pending.isEmpty() && System.currentTimeMillis() < deadline) {
+                Iterator<PendingTask> it = pending.iterator();
+                while (it.hasNext()) {
+                    PendingTask pt = it.next();
+                    TranscriptPollResult result = aliyunTranscriptsService.pollTaskOnce(pt.taskId);
+                    if (result.isCompleted()) {
+                        String text = (null == result.getText()) ? "" : result.getText();
+                        saveTranscript(classId, pt, text);
+                        doneCount++;
+                        audioTranscriptTaskDao.updateCounts(classId, examName, total, doneCount);
+                        it.remove();
+                    }
+                }
+                if (!pending.isEmpty()) {
+                    try {
+                        Thread.sleep(POLL_ROUND_INTERVAL_MS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+
+            // 5.超时未完成的加入失败列表
+            for (PendingTask pt : pending) {
+                currentFails.add(toFailedFileInfo(pt.meta));
+            }
+
+            // 6.根据失败列表更新状态
+            if (currentFails.isEmpty()) {
+                audioTranscriptTaskDao.markDone(classId, examName);
+            } else {
+                audioTranscriptTaskDao.markFailed(classId, examName,
+                        "部分增量文件未完成: " + currentFails.size() + "/" + (total + currentFails.size() - doneCount),
+                        JSON.toJSONString(currentFails));
+            }
+        } catch (Exception e) {
+            log.error("增量同步转录任务异常 classId={} examName={}", classId, examName, e);
+            audioTranscriptTaskDao.markFailed(classId, examName, "任务异常: " + e.getMessage(), null);
+        }
+    }
+
+    /**
      * 首次模式: 收集某班级某次考试的所有学生音频文件.
      */
     private List<FileMeta> collectAllFiles(int classId, String examName) {
@@ -240,6 +356,12 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
                 log.warn("学号非数字, 跳过: {}", studentId);
                 continue;
             }
+            // B: 该生该考试全部 feedback_puzzle 记录(不限 deadline), 按 puzzleIdx 分组, 用于回填 tag.
+            //   历史/已结束考试的 deadline 多已过期, 现有 queryByStudentId 带 deadline > NOW() 会漏掉, 故用 queryAllByStudentAndExam.
+            List<FeedBackPuzzle> bAll = feedBackPuzzleDao.queryAllByStudentAndExam(studentId, groupId, examName);
+            Map<Integer, List<FeedBackPuzzle>> bByPuzzle = (null == bAll || bAll.isEmpty())
+                    ? new HashMap<>()
+                    : bAll.stream().collect(Collectors.groupingBy(FeedBackPuzzle::getPuzzleIdx));
             List<String> keys = aLiYunOssService.listAudioKeysByPrefix(AUDIO_DIR + studentId + "_" + examName + "_");
             for (String key : keys) {
                 String fileName = key.startsWith(AUDIO_DIR) ? key.substring(AUDIO_DIR.length()) : key;
@@ -247,7 +369,8 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
                 if (null == puzzleIdx) {
                     continue; // 不是本次考试的音频
                 }
-                fileMetas.add(new FileMeta(studentIdInt, groupId, examName, puzzleIdx, fileName));
+                String tag = resolveTag(fileName, bByPuzzle.get(puzzleIdx));
+                fileMetas.add(new FileMeta(studentIdInt, groupId, examName, puzzleIdx, fileName, key, tag));
             }
         }
         return fileMetas;
@@ -285,6 +408,8 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
                     .examName(task.meta.examName)
                     .puzzleIdx(task.meta.puzzleIdx)
                     .transcriptText(text)
+                    .audioUrl(task.meta.audioUrl)
+                    .tag(task.meta.tag)
                     .build());
         } catch (Exception e) {
             log.error("写入转录结果失败 student={} exam={} puzzle={}",
@@ -316,6 +441,77 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
             return Integer.parseInt(rest.substring(0, under));
         } catch (NumberFormatException e) {
             return null;
+        }
+    }
+
+    /**
+     * 重试模式: 从 fail_list 重建 FileMeta, 同时回填 audio_url(完整 OSS key) 与 tag.
+     * 按 studentId 分组, 每个学生只查一次 feedback_puzzle_table(B), 避免逐文件查库.
+     */
+    private List<FileMeta> rebuildMetasFromFails(List<FailedFileInfo> fails, String examName) {
+        Map<String, List<FailedFileInfo>> failsByStudent = new HashMap<>();
+        for (FailedFileInfo f : fails) {
+            failsByStudent.computeIfAbsent(String.valueOf(f.getStudentId()), k -> new ArrayList<>()).add(f);
+        }
+        List<FileMeta> fileMetas = new ArrayList<>();
+        for (Map.Entry<String, List<FailedFileInfo>> e : failsByStudent.entrySet()) {
+            String studentId = e.getKey();
+            List<FailedFileInfo> studentFails = e.getValue();
+            int studentIdInt = studentFails.get(0).getStudentId();
+            int groupId = studentFails.get(0).getGroupId();
+            List<FeedBackPuzzle> bAll = feedBackPuzzleDao.queryAllByStudentAndExam(studentId, groupId, examName);
+            Map<Integer, List<FeedBackPuzzle>> bByPuzzle = (null == bAll || bAll.isEmpty())
+                    ? new HashMap<>()
+                    : bAll.stream().collect(Collectors.groupingBy(FeedBackPuzzle::getPuzzleIdx));
+            for (FailedFileInfo f : studentFails) {
+                String fileName = f.getFileName();
+                String tag = resolveTag(fileName, bByPuzzle.get(f.getPuzzleIdx()));
+                fileMetas.add(new FileMeta(studentIdInt, groupId, examName, f.getPuzzleIdx(), fileName, AUDIO_DIR + fileName, tag));
+            }
+        }
+        return fileMetas;
+    }
+
+    /**
+     * 为单个 OSS 音频文件解析 tag: 用文件名与 feedback_puzzle_table 中同参数记录的 feedBackAudio 匹配.
+     * feedBackAudio 现为公共读 URL(无查询参数), 以文件名为结尾, 归一化后直接比对文件名即可.
+     * 命中则取该记录的 tag(examName 或 yyMMdd); 否则视为幽灵音频(学生上传但未最终提交), 返回 null.
+     */
+    private String resolveTag(String fileName, List<FeedBackPuzzle> bRecords) {
+        if (null == bRecords) {
+            return null;
+        }
+        for (FeedBackPuzzle b : bRecords) {
+            String bFileName = decodeToFileName(b.getFeedBackAudio());
+            if (null != bFileName && bFileName.equals(fileName)) {
+                return b.getTag();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 将公共读 URL 或完整 OSS key 归一化为不带目录前缀的文件名, 并 URL 解码.
+     * feedBackAudio 现为公共读 URL(无 Expires/Signature 等查询参数), 末尾即文件名,
+     * 这里去掉域名与目录前缀取最后一段, 再解码以兼容路径中可能残留的 URL 编码(如中文 originalFilename).
+     */
+    private String decodeToFileName(String keyOrUrl) {
+        if (null == keyOrUrl || keyOrUrl.isEmpty()) {
+            return null;
+        }
+        String s = keyOrUrl;
+        int q = s.indexOf('?');
+        if (q >= 0) {
+            s = s.substring(0, q); // 去查询串(Expires/Signature 等)
+        }
+        int slash = s.lastIndexOf('/');
+        if (slash >= 0) {
+            s = s.substring(slash + 1); // 去目录前缀
+        }
+        try {
+            return URLDecoder.decode(s, "UTF-8");
+        } catch (Exception e) {
+            return s; // 解码失败则用原始字符串
         }
     }
 
@@ -371,13 +567,17 @@ public class AudioTranscriptTaskServiceImpl implements AudioTranscriptTaskServic
         final String examName;
         final int puzzleIdx;
         final String fileName;
+        final String audioUrl; // 完整 OSS key(含 feed_back/ 前缀), 落库到 audio_transcripts.audio_url
+        final String tag;      // 音频来源: examName / yyMMdd / null(幽灵, 未在 feedback_puzzle_table 中)
 
-        FileMeta(int studentId, int groupId, String examName, int puzzleIdx, String fileName) {
+        FileMeta(int studentId, int groupId, String examName, int puzzleIdx, String fileName, String audioUrl, String tag) {
             this.studentId = studentId;
             this.groupId = groupId;
             this.examName = examName;
             this.puzzleIdx = puzzleIdx;
             this.fileName = fileName;
+            this.audioUrl = audioUrl;
+            this.tag = tag;
         }
     }
 

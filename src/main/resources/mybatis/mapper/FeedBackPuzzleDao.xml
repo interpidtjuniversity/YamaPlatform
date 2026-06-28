@@ -38,6 +38,16 @@
               limit 1
     </select>
 
+    <!-- 数据修复用: 不限 deadline, 不 limit, 返回该生该考试全部反馈记录(含 examName 与 yyMMdd 两种 tag) -->
+    <select id="queryAllByStudentAndExam" resultMap="FeedBackPuzzleMap">
+        select
+            *
+        from grade_feedback.feedback_puzzle_table
+        where studentId = #{studentId} AND
+              groupId = #{groupId} AND
+              examName = #{examName}
+    </select>
+
     <insert id="insertOne" parameterType="com.clcy.grade_feedback.entity.FeedBackPuzzle">
         insert into grade_feedback.feedback_puzzle_table
         (
