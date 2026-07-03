@@ -25,7 +25,7 @@ spring:
 # PostgreSQL 数据源(音频转录表 audio_transcripts), 与 MySQL 主库独立，主要用于存储分析数据
 postgres:
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5432/snnu_exam
+    url: jdbc:postgresql://127.0.0.1:5432/snnu_exam?TimeZone=Asia/Shanghai
     #url: jdbc:postgresql://47.107.54.148:5432/snnu_exam
     username: root
     password: cy19991116
