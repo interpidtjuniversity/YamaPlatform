@@ -26,7 +26,7 @@ spring:
 postgres:
   datasource:
     url: jdbc:postgresql://127.0.0.1:5432/snnu_exam?TimeZone=Asia/Shanghai
-    #url: jdbc:postgresql://47.107.54.148:5432/snnu_exam
+    #url: jdbc:postgresql://47.107.54.148:5432/snnu_exam?TimeZone=Asia/Shanghai
     username: root
     password: cy19991116
     driverClassName: org.postgresql.Driver
@@ -37,3 +37,16 @@ deepseek:
   base-url: https://api.deepseek.com
   model: deepseek-v4-pro
 
+# 视频生成上游及异步轮询配置
+video-generation:
+  #base-url: http://127.0.0.1:5000
+  base-url: http://47.108.214.199:5000
+  connect-timeout-ms: 10000
+  read-timeout-ms: 30000
+  poll-delay-ms: 5000
+  scan-delay-ms: 2000
+  submitting-timeout-seconds: 120
+  lease-seconds: 60
+  claim-limit: 10
+  max-poll-count: 720
+  worker-count: 4
