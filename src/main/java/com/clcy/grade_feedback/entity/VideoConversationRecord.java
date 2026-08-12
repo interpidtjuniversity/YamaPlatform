@@ -29,4 +29,5 @@ public class VideoConversationRecord {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Timestamp finishedAt;
+    private String analysisInfo;
 }

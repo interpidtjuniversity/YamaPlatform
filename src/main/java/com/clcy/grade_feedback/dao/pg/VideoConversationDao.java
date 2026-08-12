@@ -19,7 +19,7 @@ public class VideoConversationDao {
 
     private static final String COLUMNS = "id, user_id, user_prompt, script_name, status, code, video_url, "
             + "error_code, error_message, poll_count, next_poll_at, lease_token, lease_until, "
-            + "created_at, updated_at, finished_at";
+            + "created_at, updated_at, finished_at, analysis_info";
 
     private static final RowMapper<VideoConversationRecord> ROW_MAPPER = (rs, rowNum) ->
             VideoConversationRecord.builder()
@@ -39,6 +39,7 @@ public class VideoConversationDao {
                     .createdAt(rs.getTimestamp("created_at"))
                     .updatedAt(rs.getTimestamp("updated_at"))
                     .finishedAt(rs.getTimestamp("finished_at"))
+                    .analysisInfo(rs.getString("analysis_info"))
                     .build();
 
     private static final RowMapper<VideoConversationRecord> SIMPLE_ROW_MAPPER = (rs, rowNum) ->
@@ -84,6 +85,16 @@ public class VideoConversationDao {
         String sql = "select " + "id, user_id, user_prompt, script_name, status, video_url, error_code, error_message, created_at, updated_at, finished_at " + " from video_conversation_records "
                 + "where user_id = ? and script_name = ? limit 1";
         List<VideoConversationRecord> records = jdbcTemplate.query(sql, SIMPLE_ROW_MAPPER, userId, scriptName);
+        return records.isEmpty() ? null : records.get(0);
+    }
+
+    /**
+     * PostgreSQL 事务内锁定当前用户的视频任务，用于串行化绑定关系的覆盖更新.
+     */
+    public VideoConversationRecord queryByUserAndScriptNameForUpdate(String userId, String scriptName) {
+        String sql = "select " + COLUMNS + " from video_conversation_records "
+                + "where user_id = ? and script_name = ? for update";
+        List<VideoConversationRecord> records = jdbcTemplate.query(sql, ROW_MAPPER, userId, scriptName);
         return records.isEmpty() ? null : records.get(0);
     }
 
@@ -194,32 +205,32 @@ public class VideoConversationDao {
         return jdbcTemplate.update(sql, status, pollDelayMs, errorCode, errorMessage, id, leaseToken);
     }
 
-    public int markCompleted(Long id, String leaseToken, String code, String videoUrl) {
+    public int markCompleted(Long id, String leaseToken, String code, String videoUrl, String analysisInfo) {
         requireNonBlank("leaseToken", leaseToken);
         String sql = "update video_conversation_records "
                 + "set status = 'COMPLETED', code = ?, video_url = ?, error_code = null, error_message = null, "
-                + "lease_token = null, lease_until = null, finished_at = now(), updated_at = now() "
+                + "lease_token = null, lease_until = null, finished_at = now(), updated_at = now(), analysis_info = ? "
                 + "where id = ? and lease_token = ? "
                 + "and status in ('QUEUED', 'GENERATING', 'RENDERING')";
-        return jdbcTemplate.update(sql, code, videoUrl, id, leaseToken);
+        return jdbcTemplate.update(sql, code, videoUrl, analysisInfo, id, leaseToken);
     }
 
     public int markFailed(Long id, String leaseToken, String errorCode, String errorMessage) {
-        return markFailed(id, leaseToken, null, errorCode, errorMessage);
+        return markFailed(id, leaseToken, null, errorCode, errorMessage, null);
     }
 
     /**
      * 标记任务失败并保留已经成功生成的代码。渲染阶段失败时视频不可用，但代码仍需返回给用户。
      */
-    public int markFailed(Long id, String leaseToken, String code, String errorCode, String errorMessage) {
+    public int markFailed(Long id, String leaseToken, String code, String errorCode, String errorMessage, String analysisInfo) {
         requireNonBlank("leaseToken", leaseToken);
         String sql = "update video_conversation_records "
                 + "set status = 'FAILED', code = coalesce(?, code), video_url = null, "
                 + "error_code = ?, error_message = ?, "
-                + "lease_token = null, lease_until = null, finished_at = now(), updated_at = now() "
+                + "lease_token = null, lease_until = null, finished_at = now(), updated_at = now(), analysis_info = ? "
                 + "where id = ? and lease_token = ? "
                 + "and status in ('QUEUED', 'GENERATING', 'RENDERING')";
-        return jdbcTemplate.update(sql, code, errorCode, errorMessage, id, leaseToken);
+        return jdbcTemplate.update(sql, code, errorCode, errorMessage, analysisInfo, id, leaseToken);
     }
 
     private static boolean hasSqlState(Throwable throwable, String sqlState) {

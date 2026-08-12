@@ -3,15 +3,21 @@ package com.clcy.grade_feedback.controller;
 import com.clcy.grade_feedback.annotation.Limit;
 import com.clcy.grade_feedback.enumerate.LimitType;
 import com.clcy.grade_feedback.model.ResultModel;
+import com.clcy.grade_feedback.model.v4.GeneratedVideoBindingQueryResult;
+import com.clcy.grade_feedback.model.v4.GeneratedVideoBindingRequest;
+import com.clcy.grade_feedback.model.v4.GeneratedVideoBindingSaveResult;
+import com.clcy.grade_feedback.model.v4.GeneratedVideoBindingTreeModel;
 import com.clcy.grade_feedback.model.v4.VideoConversationModel;
 import com.clcy.grade_feedback.model.v4.VideoConversationRequest;
 import com.clcy.grade_feedback.model.v4.VideoConversationSubmitResult;
 import com.clcy.grade_feedback.model.v4.VideoGenerateStatusModel;
+import com.clcy.grade_feedback.service.v4.GeneratedVideoBindingService;
 import com.clcy.grade_feedback.service.v4.VideoConversationService;
 import com.clcy.grade_feedback.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +34,9 @@ public class VideoConversationController {
 
     @Autowired
     private VideoConversationService videoConversationService;
+
+    @Autowired
+    private GeneratedVideoBindingService generatedVideoBindingService;
 
     @GetMapping("/conversations")
     public ResultModel<List<VideoConversationModel>> conversations() {
@@ -46,6 +55,26 @@ public class VideoConversationController {
                     .message("视频生成任务不存在");
         }
         return ResultModel.CommonResult(status);
+    }
+
+    @PostMapping("/video_bindings")
+    public ResultModel<Integer> replaceVideoBindings(@RequestBody GeneratedVideoBindingRequest request) {
+        String ownerNumber = UserHolder.getValue().getStudentId();
+        GeneratedVideoBindingSaveResult result = generatedVideoBindingService.replaceBindings(ownerNumber, request);
+        return ResultModel.CommonResult(result.getSavedCount())
+                .success(Boolean.TRUE.equals(result.getSuccess()))
+                .message(result.getMessage());
+    }
+
+    @GetMapping("/video_bindings")
+    public ResultModel<GeneratedVideoBindingTreeModel> queryVideoBindings(
+            @RequestParam("script_name") String scriptName) {
+        String ownerNumber = UserHolder.getValue().getStudentId();
+        GeneratedVideoBindingQueryResult result = generatedVideoBindingService.queryBindingTree(
+                ownerNumber, scriptName);
+        return ResultModel.CommonResult(result.getBindingTree())
+                .success(Boolean.TRUE.equals(result.getFound()))
+                .message(result.getMessage());
     }
 
     @PostMapping("/conversations/generate")

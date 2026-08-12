@@ -35,7 +35,7 @@ postgres:
 deepseek:
   api-key: sk-bc26d16b46cf4338ac5f2cb9f5e51353
   base-url: https://api.deepseek.com
-  model: deepseek-v4-pro
+  model: deepseek-v4-flash
 
 # 视频生成上游及异步轮询配置
 video-generation:

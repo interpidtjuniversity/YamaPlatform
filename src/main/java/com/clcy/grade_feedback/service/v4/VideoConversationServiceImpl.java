@@ -116,7 +116,8 @@ public class VideoConversationServiceImpl implements VideoConversationService {
                 continue;
             }
             messages.add(new VideoHistoryMessage("user", record.getUserPrompt()));
-            messages.add(new VideoHistoryMessage("assistant", record.getCode() + record.getErrorMessage()));
+            messages.add(new VideoHistoryMessage("assistant", record.getAnalysisInfo()));
+            messages.add(new VideoHistoryMessage("assistant", record.getCode()));
         }
         return messages;
     }

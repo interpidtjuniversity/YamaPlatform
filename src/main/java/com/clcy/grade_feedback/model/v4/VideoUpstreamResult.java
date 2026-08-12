@@ -15,6 +15,7 @@ public class VideoUpstreamResult {
     private String scriptName;
     private String status;
     private String code;
+    private String analysisInfo;
     private String errorCode;
     private String error;
     private boolean retryable;

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clcy.grade_feedback.dao.OwnerVideoHierarchyDao">
+
+    <resultMap type="com.clcy.grade_feedback.entity.OwnerVideoHierarchyRow" id="OwnerVideoHierarchyRowMap">
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="className" column="class_name" jdbcType="VARCHAR"/>
+        <result property="groupId" column="group_id" jdbcType="INTEGER"/>
+        <result property="groupName" column="group_name" jdbcType="VARCHAR"/>
+        <result property="examName" column="exam_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryByOwnerNumber" resultMap="OwnerVideoHierarchyRowMap">
+        select
+            c.id as class_id,
+            c.class_name as class_name,
+            g.id as group_id,
+            g.group_name as group_name,
+            e.exam_name as exam_name
+        from grade_feedback.class_info c
+        left join grade_feedback.group_class_info g
+            on g.class_id = c.id
+        left join grade_feedback.group_exam_meta e
+            on e.group_id = g.id
+            and e.class_id = c.id
+        where c.owner_number = #{ownerNumber}
+        order by c.id, g.id, e.id, e.exam_name
+    </select>
+
+</mapper>

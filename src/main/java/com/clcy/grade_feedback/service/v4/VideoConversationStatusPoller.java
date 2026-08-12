@@ -158,7 +158,7 @@ public class VideoConversationStatusPoller {
         VideoUpstreamResult codeResult = videoGenerationClient.getCode(task.getScriptName());
         if (codeResult.isSuccessful() && StringUtils.hasText(codeResult.getCode())) {
             videoConversationDao.markFailed(task.getId(), leaseToken, codeResult.getCode(),
-                    errorCode, errorMessage);
+                    errorCode, errorMessage, codeResult.getAnalysisInfo());
             return;
         }
 
@@ -189,7 +189,7 @@ public class VideoConversationStatusPoller {
         }
         if (codeResult.isSuccessful() && StringUtils.hasText(codeResult.getCode())) {
             videoConversationDao.markCompleted(task.getId(), leaseToken, codeResult.getCode(),
-                    videoGenerationClient.buildVideoUrl(task.getScriptName()));
+                    videoGenerationClient.buildVideoUrl(task.getScriptName()), codeResult.getAnalysisInfo());
             return;
         }
         if (isHttpStatus(codeResult, 202) || codeResult.isRetryable()) {

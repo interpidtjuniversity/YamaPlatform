@@ -145,6 +145,7 @@ public class VideoGenerationClient {
             result.setScriptName(firstText(json, "script_name", "scriptName"));
             result.setStatus(firstText(json, "status", "state"));
             result.setCode(firstText(json, "code"));
+            result.setAnalysisInfo(firstText(json, "analysis_info"));
             result.setErrorCode(firstText(json, "error_code", "errorCode"));
             result.setError(firstText(json, "error", "error_message", "errorMessage", "message", "detail"));
         } catch (JSONException e) {

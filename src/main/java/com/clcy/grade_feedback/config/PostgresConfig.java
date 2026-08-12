@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 
@@ -45,5 +48,17 @@ public class PostgresConfig {
     @Bean(name = "pgJdbcTemplate")
     public JdbcTemplate pgJdbcTemplate(@Qualifier("pgDataSource") DataSource pgDataSource) {
         return new JdbcTemplate(pgDataSource);
+    }
+
+    @Bean(name = "pgTransactionManager")
+    public PlatformTransactionManager pgTransactionManager(
+            @Qualifier("pgDataSource") DataSource pgDataSource) {
+        return new DataSourceTransactionManager(pgDataSource);
+    }
+
+    @Bean(name = "pgTransactionTemplate")
+    public TransactionTemplate pgTransactionTemplate(
+            @Qualifier("pgTransactionManager") PlatformTransactionManager transactionManager) {
+        return new TransactionTemplate(transactionManager);
     }
 }

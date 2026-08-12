@@ -61,11 +61,13 @@ public class druid {
     }
 
     @Bean
+    @Primary
     public PlatformTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
     @Bean
+    @Primary
     public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
         return new TransactionTemplate(transactionManager);
     }

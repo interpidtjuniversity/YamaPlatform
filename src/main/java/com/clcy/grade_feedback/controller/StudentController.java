@@ -4,6 +4,9 @@ import com.clcy.grade_feedback.manager.StudentManager;
 import com.clcy.grade_feedback.model.ResultModel;
 import com.clcy.grade_feedback.model.v2.*;
 import com.clcy.grade_feedback.model.v3.*;
+import com.clcy.grade_feedback.model.v4.StudentVideoModel;
+import com.clcy.grade_feedback.model.v4.StudentVideoQueryResult;
+import com.clcy.grade_feedback.service.v4.StudentVideoService;
 import com.clcy.grade_feedback.utils.UserHolder;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,9 @@ public class StudentController {
 
     @Autowired
     private StudentManager studentManager;
+
+    @Autowired
+    private StudentVideoService studentVideoService;
 
     /**
      * 查询某个学生的班级列表
@@ -158,6 +164,31 @@ public class StudentController {
     public ResultModel<List<StudentExamRecordModel>> examRecords(HttpServletRequest request, HttpServletResponse response, @RequestParam("examName") String examName, @RequestParam("groupId") int groupId) {
         String studentId = UserHolder.getValue().getStudentId();
         return ResultModel.CommonResult(studentManager.examRecords(groupId, examName, studentId));
+    }
+
+    /**
+     * 查询当前学生在某分组测试页面可见的视频.
+     */
+    @GetMapping("/examVideos")
+    public ResultModel<List<StudentVideoModel>> examVideos(@RequestParam("groupId") Integer groupId,
+                                                            @RequestParam("examName") String examName) {
+        String studentId = UserHolder.getValue().getStudentId();
+        StudentVideoQueryResult result = studentVideoService.queryExamVideos(studentId, groupId, examName);
+        return ResultModel.CommonResult(result.getVideos())
+                .success(Boolean.TRUE.equals(result.getSuccess()))
+                .message(result.getMessage());
+    }
+
+    /**
+     * 查询当前学生所在班级的公共视频.
+     */
+    @GetMapping("/classVideos")
+    public ResultModel<List<StudentVideoModel>> classVideos(@RequestParam("classId") Integer classId) {
+        String studentId = UserHolder.getValue().getStudentId();
+        StudentVideoQueryResult result = studentVideoService.queryClassVideos(studentId, classId);
+        return ResultModel.CommonResult(result.getVideos())
+                .success(Boolean.TRUE.equals(result.getSuccess()))
+                .message(result.getMessage());
     }
 
     /**
